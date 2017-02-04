@@ -41,6 +41,11 @@
     | seek(0) |
     '========='
     </a></pre>
+    <pre><a onclick="addExampleNote()" class="button">
+    .------------------.
+    | Add Example Note |
+    '=================='
+    </a></pre>
 
     <script>!function () { 'use strict'
 
@@ -56,7 +61,7 @@
         demo1.on( '*', (event) => { $output.innerHTML = demo1.dump() } )
 
         //// Jump to a step in the sequence.
-        demo1.seek(5)
+        demo1.seek(2)
 
         //// Schedule some notes.
         const noteId_0 = demo1.addNote({
@@ -67,19 +72,24 @@
           , velocity: 50   // loudness of voice, from 0 to 99
           , voice: {
                 release: 8 // number of steps after finger releases piano key
+              , fillBuffer: basicSine
             }
         })
 
-        const noteId_1 = demo1.addNote({
-            track:    1
-          , on:       10
-          , duration: 2
-          , pitch:    'D'
-          , velocity: 30
-          , voice: {
-                release: 4
-            }
-        })
+        window.addExampleNote = function () {
+            const noteId_1 = demo1.addNote({
+                track:    1
+              , on:       10
+              , duration: 2
+              , pitch:    'D'
+              , velocity: 30
+              , voice: {
+                    release: 4
+                  , fillBuffer: basicSine
+                }
+            })
+        }
+/*
 
         const noteId_2 = demo1.addNote({
             track:    1
@@ -89,8 +99,18 @@
           , velocity: 99
           , voice: {
                 release: 1
+              , fillBuffer: basicSine
             }
         })
+*/
+
+        //// Define a function for generating AudioBuffer data.
+        function basicSine (config) {
+            const { buffer, adsr, pitch, velocity } = config
+               , l = buffer.length
+            for (let i=0; i<l; i++)
+              buffer[i] = Math.random() - 0.5 // 50% noise
+        }
 
     }()</script>
 

@@ -1,7 +1,7 @@
 !function () { 'use strict'
 
     const NAME     = 'seqin'
-        , VERSION  = '0.0.5'
+        , VERSION  = '0.0.6'
         , HOMEPAGE = 'http://seqin.loop.coop/'
     ;
 
@@ -11,10 +11,14 @@
 
             this.fidelity = config.fidelity || 5600
             this.notes = []
+
             this.cbs = { '*':[] } // event-listener callbacks @todo +'play' etc
+
             this.metronome = 'o' // flips between 'o' and 'x'
             this.oldTimestamp = 0
             this.inaccuracy = 0 // @todo remove this, I think
+
+            this.ctx = new AudioContext()
 
             //// Create each track.
             this.tracks = []
@@ -62,6 +66,10 @@
             this.metronome = 'o' === this.metronome ? 'x' : 'o'
             if (this.isPlaying) {
                 this.seek( this.activeStep.id + 1 )
+                let source = this.ctx.createBufferSource()
+                source.buffer = this.activeStep.masterSlot.buffer
+                source.connect(this.ctx.destination)
+                source.start()
             }
             this.trigger('tick')
         }
@@ -110,17 +118,19 @@
             this.seqin = seqin
             this.isActive = false
 
-            //// Create each slot.
-            this.slots = []
+            //// Create a slot for each track.
+            this.trackSlots = []
             for (let i=0; i<seqin.tracks.length; i++) {
-                this.slots.push( new Slot(i) )
+                this.trackSlots.push( new TrackSlot(seqin) )
             }
+
+            //// Create the master-mix slot.
+            this.masterSlot = new MasterSlot(seqin)
         }
 
         addNote (note, adsr) {
-            const slot = this.slots[note.track]
-            slot.note = note
-            slot.adsr = adsr
+            this.trackSlots[note.track].update(note, adsr)
+            this.masterSlot.mix( this.trackSlots.filter( slot => slot.note ) )
         }
 
         dump () {
@@ -130,9 +140,10 @@
             out.push(this.isActive ? this.seqin.isPlaying ? '>' : '#' : '.')
             out.push( ' '.repeat(maxIdLen - thisIdLen) )
             out.push(this.id)
-            for (let i=0, slot; slot=this.slots[i++];) {
+            for (let i=0, slot; slot=this.trackSlots[i++];) {
                 out.push( `| ${slot.dump()} |` )
             }
+            out.push( this.masterSlot.dump() )
             return out.join(' ')
         }
 
@@ -169,13 +180,38 @@
         }
 
     }
+
+
     class Slot {
 
-        constructor (id, step) {
-            this.id = id
-            this.step = step
+        constructor (seqin) {
+            this.buffer = seqin.ctx.createBuffer(
+                1                    // mono
+              , seqin.fidelity       // 5400 frames, by default
+              , seqin.ctx.sampleRate //
+            )
+        }
+
+    }
+
+
+    class TrackSlot extends Slot {
+
+        constructor (seqin) {
+            super(seqin)
             this.note = null
             this.adsr = null
+        }
+
+        update (note, adsr) {
+            this.note = note
+            this.adsr = adsr
+            note.voice.fillBuffer({
+                buffer:   this.buffer.getChannelData(0)
+              , adsr:     adsr
+              , pitch:    note.pitch
+              , velocity: note.velocity
+            })
         }
 
         dump () {
@@ -184,16 +220,55 @@
               : 'decay'   === this.adsr ? this.note.pitch
               : 'sustain' === this.adsr ? this.note.pitch.toLowerCase()
               : 'release' === this.adsr ? '.'
-              :                           ' ' // unreachable!
+              :                           ' ' // empty slot
             )
         }
 
     }
 
-    class Snippet {
 
-        constructor (id) {
-            this.id = id
+    class MasterSlot extends Slot {
+
+        constructor (seqin) {
+            super(seqin)
+            this.seqin = seqin
+            this.isMixing = false
+        }
+
+        mix (trackSlots) {
+            this.isMixing = true
+
+            //// Record the list of track-slots - used by dump()
+            this.trackSlots = trackSlots
+
+            //// We need a fresh offline audio context for each new mix
+            const offlineCtx = new OfflineAudioContext(
+                1                         // mono
+              , this.seqin.fidelity       // 5400 frames, by default
+              , this.seqin.ctx.sampleRate //
+            )
+
+            //// Connect each track-slot to the offline audio context.
+            for (let i=0, trackSlot; trackSlot=trackSlots[i++];) {
+                let source = offlineCtx.createBufferSource()
+                source.buffer = trackSlot.buffer
+                source.connect(offlineCtx.destination)
+                source.start()
+            }
+
+            //// Mix the track-slots.
+            offlineCtx.startRendering()
+               .then( buffer => (this.buffer = buffer, this.isMixing = false) )
+               .catch( err => console.log('Rendering failed: ' + err) )
+
+        }
+
+        dump () {
+            return (
+                  (! this.trackSlots) ? ' '
+                : this.isMixing       ? '!!!'
+                : this.trackSlots.map( slot => slot.dump() ).join('+')
+            )
         }
 
     }
