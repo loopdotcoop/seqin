@@ -1,7 +1,7 @@
 !function () { 'use strict'
 
     const NAME     = 'seqin'
-        , VERSION  = '0.0.6'
+        , VERSION  = '0.0.7'
         , HOMEPAGE = 'http://seqin.loop.coop/'
     ;
 
@@ -54,8 +54,8 @@
         }
 
         checkForTick (timestamp) {
-            if (1000 < timestamp - this.oldTimestamp) {
-                this.inaccuracy = timestamp - this.oldTimestamp - 1000
+            if (100 < timestamp - this.oldTimestamp) {
+                this.inaccuracy = timestamp - this.oldTimestamp - 100
                 this.oldTimestamp = timestamp
                 this.tick()
             }

@@ -108,8 +108,21 @@
         function basicSine (config) {
             const { buffer, adsr, pitch, velocity } = config
                , l = buffer.length
-            for (let i=0; i<l; i++)
-              buffer[i] = Math.random() - 0.5 // 50% noise
+            let f = 10
+            if ('B' === pitch) f = 9
+            if ('D' === pitch) f = 11
+            if ('attack' === adsr)
+                for (let i=0; i<l; i++)
+                    buffer[i] = Math.random() * 2 - 1 // 100% noise
+            if ('decay' === adsr)
+                for (let i=0; i<l; i++)
+                    buffer[i] = (Math.sin(i / f) / 2) + ( Math.random() - 0.5 ) // 50% sine + 50% noise
+            if ('sustain' === adsr)
+                for (let i=0; i<l; i++)
+                    buffer[i] = Math.sin(i / f) / 2 // 50% sine wave
+            if ('release' === adsr)
+                for (let i=0; i<l; i++)
+                    buffer[i] = Math.sin(i / f) / 4 // 25% sine wave
         }
 
     }()</script>
