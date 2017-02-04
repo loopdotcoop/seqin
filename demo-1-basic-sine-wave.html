@@ -8,20 +8,55 @@
 
     <script src="js/seqin.es6.js"></script>
 
+    <style type="text/css">
+      .button {
+        cursor: pointer;
+        float: left;
+        transition: color 0.5s;
+      }
+      .button:hover {
+        color: blue;
+      }
+    </style>
+
   </head>
   <body style="font-family:Arial, sans-serif; background:#ccc; color:#333">
 
     <h1><a href="./index.html">Seqin Demo</a></h1>
     <h2>Seqin Demo 1: Basic Sine Wave</h2>
 
+    <pre id="output"></pre>
+    <pre><a onclick="DEMO.play()" class="button">
+    .--------.
+    | play() |
+    '========'
+    </a></pre>
+    <pre><a onclick="DEMO.stop()" class="button">
+    .--------.
+    | stop() |
+    '========'
+    </a></pre>
+    <pre><a onclick="DEMO.seek(0)" class="button">
+    .---------.
+    | seek(0) |
+    '========='
+    </a></pre>
+
     <script>!function () { 'use strict'
 
         //// Create a sequin instance.
-        const demo1 = new Seqin({
+        const demo1 = window.DEMO = new Seqin({
             tracks:   2    // number of audio channels (default 2)
           , steps:    16   // defines the grid (default 16)
           , fidelity: 5400 // samples per step (default 5400)
         })
+
+        //// Listen for events.
+        const $output = document.getElementById('output')
+        demo1.on( '*', (event) => { $output.innerHTML = demo1.dump() } )
+
+        //// Jump to a step in the sequence.
+        demo1.seek(5)
 
         //// Schedule some notes.
         const noteId_0 = demo1.addNote({
@@ -56,9 +91,6 @@
                 release: 1
             }
         })
-
-        //// Display current sequin state.
-        document.write( '<pre>' + demo1.dump() + '</pre>' )
 
     }()</script>
 

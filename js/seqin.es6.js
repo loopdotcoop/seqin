@@ -7,10 +7,14 @@
 
     window.Seqin = class Seqin {
 
-        constructor(config) {
+        constructor (config) {
 
             this.fidelity = config.fidelity || 5600
             this.notes = []
+            this.cbs = { '*':[] } // event-listener callbacks @todo +'play' etc
+            this.metronome = 'o' // flips between 'o' and 'x'
+            this.oldTimestamp = 0
+            this.inaccuracy = 0 // @todo remove this, I think
 
             //// Create each track.
             this.tracks = []
@@ -23,30 +27,75 @@
             for (let i=0; i<(config.steps||16); i++) {
                 this.steps.push( new Step(i, this) )
             }
-            this.steps[0].active = true
 
+            //// Playback is stopped, and playhead is at the first step.
+            this.isPlaying = false
+            this.activeStep = this.steps[0]
+            this.activeStep.isActive = true
+
+            //// Start the metronome.
+            window.requestAnimationFrame( (ts) => this.checkForTick(ts) )
         }
 
-        play() {
-
+        on (eventName, callback) {
+            const cbs = this.cbs[eventName]
+            if (! cbs) return // event-name not recognised
+            cbs.push(callback)
         }
 
-        stop() {
-
+        trigger (eventName) {
+            if (this.cbs[eventName]) {
+              for (let i=0, cb; cb=this.cbs[eventName][i++];) cb(eventName) }
+            for (let i=0, cb; cb=this.cbs['*'][i++];) cb(eventName)
         }
 
-        seek() {
-
+        checkForTick (timestamp) {
+            if (1000 < timestamp - this.oldTimestamp) {
+                this.inaccuracy = timestamp - this.oldTimestamp - 1000
+                this.oldTimestamp = timestamp
+                this.tick()
+            }
+            window.requestAnimationFrame( (ts) => this.checkForTick(ts) )
         }
 
-        addNote(config) {
+        tick () {
+            this.metronome = 'o' === this.metronome ? 'x' : 'o'
+            if (this.isPlaying) {
+                this.seek( this.activeStep.id + 1 )
+            }
+            this.trigger('tick')
+        }
+
+        play () {
+            if (this.isPlaying) return
+            this.isPlaying = true
+            this.trigger('play')
+        }
+
+        stop () {
+            if (! this.isPlaying) return
+            this.isPlaying = false
+            this.trigger('stop')
+        }
+
+        seek (stepId) {
+            this.activeStep.isActive = false
+            this.activeStep = this.steps[ stepId % this.steps.length]
+            this.activeStep.isActive = true
+            this.trigger('seek')
+        }
+
+        addNote (config) {
             config.id = this.notes.length
             this.notes.push( new Note(config, this) )
+            this.trigger('add-note')
             return config.id
         }
 
-        dump() {
-            const out = [];
+        dump () {
+            const out = [
+                `[${this.metronome}] inaccuracy: ${this.inaccuracy.toFixed(5)}ms`
+            ]
             for (let i=0, step; step=this.steps[i++];) {
                 out.push( step.dump() )
             }
@@ -56,28 +105,29 @@
 
     class Step {
 
-        constructor(id, sequin) {
+        constructor (id, seqin) {
             this.id = id
-            this.sequin = sequin
+            this.seqin = seqin
+            this.isActive = false
 
             //// Create each slot.
             this.slots = []
-            for (let i=0; i<sequin.tracks.length; i++) {
+            for (let i=0; i<seqin.tracks.length; i++) {
                 this.slots.push( new Slot(i) )
             }
         }
 
-        addNote(note, adsr) {
+        addNote (note, adsr) {
             const slot = this.slots[note.track]
             slot.note = note
             slot.adsr = adsr
         }
 
-        dump() {
+        dump () {
             let out = []
-              , maxIdLen = (this.sequin.steps.length+'').length
+              , maxIdLen = (this.seqin.steps.length+'').length
               , thisIdLen = (this.id+'').length
-            out.push(this.active ? '#' : '.')
+            out.push(this.isActive ? this.seqin.isPlaying ? '>' : '#' : '.')
             out.push( ' '.repeat(maxIdLen - thisIdLen) )
             out.push(this.id)
             for (let i=0, slot; slot=this.slots[i++];) {
@@ -90,13 +140,13 @@
 
     class Track {
 
-        constructor(id, sequin) {
+        constructor (id, seqin) {
             this.id = id
-            this.sequin = sequin
+            this.seqin = seqin
             this.notes = {}
         }
 
-        addNote(note) {
+        addNote (note) {
             this.notes[note.id] = note
         }
 
@@ -105,7 +155,7 @@
 
     class Note {
 
-        constructor(config, seqin) {
+        constructor (config, seqin) {
             for (let key in config) this[key] = config[key]
             seqin.tracks[this.track].addNote(this)
             let stepId = this.on
@@ -121,14 +171,14 @@
     }
     class Slot {
 
-        constructor(id, step) {
+        constructor (id, step) {
             this.id = id
             this.step = step
             this.note = null
             this.adsr = null
         }
 
-        dump() {
+        dump () {
             return (
                 'attack'  === this.adsr ? this.note.pitch + '\u0332'
               : 'decay'   === this.adsr ? this.note.pitch
@@ -142,7 +192,7 @@
 
     class Snippet {
 
-        constructor(id) {
+        constructor (id) {
             this.id = id
         }
 
