@@ -15,11 +15,51 @@
     <h2>Seqin Demo 1: Basic Sine Wave</h2>
 
     <script>!function () { 'use strict'
+
+        //// Create a sequin instance.
         const demo1 = new Seqin({
-            steps:    16   // defines the grid
-          , fidelity: 5600 // samples per step
+            tracks:   2    // number of audio channels (default 2)
+          , steps:    16   // defines the grid (default 16)
+          , fidelity: 5400 // samples per step (default 5400)
         })
+
+        //// Schedule some notes.
+        const noteId_0 = demo1.addNote({
+            track:    0    // id of the track which the note should be added to
+          , on:       6    // id of the step at which the 'piano key' is pressed
+          , duration: 4    // number of steps until the 'piano key' is released
+          , pitch:    'B'  // frequency of voice, eg 'A' or 'C'
+          , velocity: 50   // loudness of voice, from 0 to 99
+          , voice: {
+                release: 8 // number of steps after finger releases piano key
+            }
+        })
+
+        const noteId_1 = demo1.addNote({
+            track:    1
+          , on:       10
+          , duration: 2
+          , pitch:    'D'
+          , velocity: 30
+          , voice: {
+                release: 4
+            }
+        })
+
+        const noteId_2 = demo1.addNote({
+            track:    1
+          , on:       20 // wraps to step 4
+          , duration: 0
+          , pitch:    'F'
+          , velocity: 99
+          , voice: {
+                release: 1
+            }
+        })
+
+        //// Display current sequin state.
         document.write( '<pre>' + demo1.dump() + '</pre>' )
+
     }()</script>
 
   </body>
