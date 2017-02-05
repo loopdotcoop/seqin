@@ -1,7 +1,7 @@
 !function () { 'use strict'
 
     const NAME     = 'seqin'
-        , VERSION  = '0.0.7'
+        , VERSION  = '0.0.8'
         , HOMEPAGE = 'http://seqin.loop.coop/'
     ;
 
@@ -15,8 +15,6 @@
             this.cbs = { '*':[] } // event-listener callbacks @todo +'play' etc
 
             this.metronome = 'o' // flips between 'o' and 'x'
-            this.oldTimestamp = 0
-            this.inaccuracy = 0 // @todo remove this, I think
 
             this.ctx = new AudioContext()
 
@@ -33,12 +31,13 @@
             }
 
             //// Playback is stopped, and playhead is at the first step.
-            this.isPlaying = false
+            this.isPlaying = true
             this.activeStep = this.steps[0]
             this.activeStep.isActive = true
+            this.play()
 
             //// Start the metronome.
-            window.requestAnimationFrame( (ts) => this.checkForTick(ts) )
+            window.requestAnimationFrame( ts => this.checkForTick() )
         }
 
         on (eventName, callback) {
@@ -53,23 +52,35 @@
             for (let i=0, cb; cb=this.cbs['*'][i++];) cb(eventName)
         }
 
-        checkForTick (timestamp) {
-            if (100 < timestamp - this.oldTimestamp) {
-                this.inaccuracy = timestamp - this.oldTimestamp - 100
-                this.oldTimestamp = timestamp
-                this.tick()
+        checkForTick () {
+            let timestamp = this.ctx.currentTime
+              , timeSinceLastTick = timestamp % 0.12244897959183673
+              , timeTilNextTick = 0.12244897959183673 - timeSinceLastTick
+            if (0.03 > timeTilNextTick) { // less than 30ms to go til next tick()
+                if (this.isPlaying) {
+                    let source = this.ctx.createBufferSource()
+                    let nextStepId = (this.activeStep.id+1) % this.steps.length
+                    let nextStep = this.steps[nextStepId]
+                    source.buffer = nextStep.masterSlot.buffer
+                    source.connect(this.ctx.destination)
+                    source.start( this.ctx.currentTime + timeTilNextTick )
+                    // console.log(
+                    //     ( this.ctx.currentTime + timeTilNextTick ) / 0.12244897959183673
+                    // );
+                }
+                setTimeout(
+                    () => ( this.checkForTick(), this.tick() )
+                  , timeTilNextTick * 1000 + 30
+                )
+            } else {
+                window.requestAnimationFrame( ts => this.checkForTick() )
             }
-            window.requestAnimationFrame( (ts) => this.checkForTick(ts) )
         }
 
         tick () {
             this.metronome = 'o' === this.metronome ? 'x' : 'o'
             if (this.isPlaying) {
                 this.seek( this.activeStep.id + 1 )
-                let source = this.ctx.createBufferSource()
-                source.buffer = this.activeStep.masterSlot.buffer
-                source.connect(this.ctx.destination)
-                source.start()
             }
             this.trigger('tick')
         }
@@ -102,7 +113,7 @@
 
         dump () {
             const out = [
-                `[${this.metronome}] inaccuracy: ${this.inaccuracy.toFixed(5)}ms`
+                `[${this.metronome}] ${this.ctx.sampleRate/1000}kHz`
             ]
             for (let i=0, step; step=this.steps[i++];) {
                 out.push( step.dump() )
@@ -216,11 +227,11 @@
 
         dump () {
             return (
-                'attack'  === this.adsr ? this.note.pitch + '\u0332'
+                'attack'  === this.adsr ? this.note.pitch.split('').join('\u0332') + '\u0332'
               : 'decay'   === this.adsr ? this.note.pitch
               : 'sustain' === this.adsr ? this.note.pitch.toLowerCase()
-              : 'release' === this.adsr ? '.'
-              :                           ' ' // empty slot
+              : 'release' === this.adsr ? '..'
+              :                           '  ' // empty slot
             )
         }
 
