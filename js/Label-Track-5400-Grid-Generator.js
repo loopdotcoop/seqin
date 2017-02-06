@@ -1,1 +1,0 @@
-for (var i=0, out=[]; i<=490; i++) {    var sample = 5400 / 44100 * i    out.push(sample + '\t' + sample + '\t' + i);}require('fs').writeFileSync( 'Label-Track-5400-Grid.txt', out.join('\n') );
