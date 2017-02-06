@@ -49,11 +49,15 @@
 
     <script>!function () { 'use strict'
 
-        //// Create a sequin instance.
+        //// Load Web Worker functionality (shared by all Seqin instances..?)
+        const worker = new Worker('js/seqin-worker.es6.js')
+
+        //// Create a Seqin instance.
         const demo1 = window.DEMO = new Seqin({
-            tracks:   2    // number of audio channels (default 2)
-          , steps:    16   // defines the grid (default 16)
-          , fidelity: 5400 // samples per step (default 5400)
+            worker:   worker // runs a metronome, outside of the main thread
+          , tracks:   2      // number of audio channels (default 2)
+          , steps:    16     // defines the grid (default 16)
+          , fidelity: 5400   // samples per step (default 5400)
         })
 
         //// Listen for events.
@@ -66,12 +70,12 @@
         //// Schedule some notes.
         const noteId_0 = demo1.addNote({
             track:    0    // id of the track which the note should be added to
-          , on:       2    // id of the step at which the 'piano key' is pressed
+          , on:       0    // id of the step at which the 'piano key' is pressed
           , duration: 3   // number of steps until the 'piano key' is released
           , pitch:    'Z3'// 'V6' // frequency of voice, from 'Z0' to 'J9'
           , velocity: 50   // loudness of voice, from 0 to 99
           , voice: {
-                release: 8 // number of steps after finger releases piano key
+                release: 11 // number of steps after finger releases piano key
               , fillBuffer: basicSine
             }
         })
@@ -128,6 +132,8 @@
             //         buffer[i] = ( (prev*3 + now) / 16 ) + ( Math.sin(i * f) / 2 )
             //         prev = now
             //     }
+
+
             if ('attack' === adsr || 'decay' === adsr)
                 for (let i=0; i<l; i++)
                     buffer[i] = Math.sin(i * f)     // 100% sine wave
@@ -139,15 +145,33 @@
                     buffer[i] = Math.sin(i * f) / 4 // 25% sine wave
 
             //// Replace the first eight samples with a click.
-            // buffer[0] = 0.125
-            // buffer[1] = 0.25
-            // buffer[2] = 0.125
-            // buffer[3] = 0.25
-            // buffer[4] = 0
-            // buffer[5] = 0.375
-            // buffer[6] = 0
-            // buffer[7] = -0.45
-            // buffer[8] = 0.125
+            buffer[0] = 0.125
+            buffer[1] = 0.45
+            buffer[2] = 0.125
+            buffer[3] = 0.25
+            buffer[4] = 0
+            buffer[5] = 0.375
+            buffer[6] = 0
+            buffer[7] = -0.45
+            buffer[8] = 0.125
+
+            //// Replace the last sixteen samples with a buzz.
+            buffer[l-1]  = 0
+            buffer[l-2]  = 0.25
+            buffer[l-3]  = -0.25
+            buffer[l-4]  = 0.25
+            buffer[l-5]  = -0.25
+            buffer[l-6]  = 0.25
+            buffer[l-7]  = -0.25
+            buffer[l-8]  = 0.25
+            buffer[l-9]  = -0.25
+            buffer[l-10] = 0.25
+            buffer[l-11] = -0.25
+            buffer[l-12] = 0.25
+            buffer[l-13] = -0.25
+            buffer[l-14] = 0.25
+            buffer[l-15] = -0.25
+            buffer[l-16] = 0.25
         }
 
     }()</script>
