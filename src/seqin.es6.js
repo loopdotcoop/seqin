@@ -1,7 +1,7 @@
 !function () { 'use strict'
 
 const NAME     = 'seqin'
-    , VERSION  = '0.0.9'
+    , VERSION  = '0.0.10'
     , HOMEPAGE = 'http://seqin.loop.coop/'
 ;
 
@@ -21,7 +21,7 @@ window.Seqin = class Seqin {
         this.duplicateTicks = 0
         this.missedTicks = 0
 
-        this.ctx = new AudioContext()
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)()
 
         //// Create each track.
         this.tracks = []
@@ -273,7 +273,7 @@ class MasterSlot extends Slot {
         this.trackSlots = trackSlots
 
         //// We need a fresh offline audio context for each new mix
-        const offlineCtx = new OfflineAudioContext(
+        const offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(
             1                         // mono
           , this.seqin.fidelity       // 5400 frames, by default
           , this.seqin.ctx.sampleRate //
@@ -287,10 +287,15 @@ class MasterSlot extends Slot {
             source.start()
         }
 
-        //// Mix the track-slots.
+        //// Mix the track-slots. @todo modern browsers should use promises
+        // offlineCtx.startRendering()
+        //    .then( buffer => (this.buffer = buffer, this.isMixing = false) )
+        //    .catch( err => console.log('Rendering failed: ' + err) )
         offlineCtx.startRendering()
-           .then( buffer => (this.buffer = buffer, this.isMixing = false) )
-           .catch( err => console.log('Rendering failed: ' + err) )
+        offlineCtx.oncomplete = e => { // Safari needs this older syntax
+            this.buffer = e.renderedBuffer
+            this.isMixing = false
+        }
 
     }
 
