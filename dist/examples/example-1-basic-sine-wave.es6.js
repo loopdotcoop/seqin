@@ -1,7 +1,22 @@
 !function () { 'use strict'
 
+//// Poll for Seqin’s script to load.
+let giveUp = 99
+function wait () {
+    if ('function' === typeof Seqin)
+        init()
+    else if (! giveUp--)
+        alert('Given up waiting for Seqin!')
+    else
+        setTimeout(wait, 100)
+}
+wait()
+
+//// Initialise the demo.
+function init () {
+
     //// Load Web Worker functionality (shared by all Seqin instances..?)
-    const worker = new Worker('../dist/worker/seqin-worker.es5.js');
+    const worker = new Worker('../dist/worker/seqin-worker.es6.js');
 
     //// Create a Seqin instance.
     const demo1 = window.DEMO = new Seqin({
@@ -124,5 +139,7 @@
         buffer[l-15] = -0.25
         buffer[l-16] = 0.25
     }
+
+} //init()
 
 }()

@@ -7,7 +7,11 @@
     <meta name="description" content="Audio sequencer for Looptopia by Loop.Coop">
 
     <script src="traceur-runtime.js"></script>
-    <script src="../dist/main/seqin.es5.js"></script>
+    <script>!function(d,c,e){c=function(p,s){s=d.createElement('script');s.src=p
+    d.head.appendChild(s)};e=d.cookie.split('=')[1]||5
+    c('../'+(1==e?'src':'dist')+'/main/seqin.es'+(1==e?6:e)+'.js')
+    c('../'+(1==e?'src':'dist')+'/examples/example-1-basic-sine-wave.es'+(1==e?6:e)+'.js')
+    }(document)</script>
 
     <style type="text/css">
       .button {
@@ -23,7 +27,17 @@
   </head>
   <body style="font-family:Arial, sans-serif; background:#ccc; color:#333">
 
-    <h1><a href="./index.html">Seqin Demo</a></h1>
+    <select id="es" style="float:right" onchange="
+        document.cookie='es='+this.selectedOptions[0].value;location.reload()">
+      <option value="5=">Production ES5</option><!-- default -->
+      <option value="5.min=">Production Minified ES5</option>
+      <option value="6=">Production ES6</option>
+      <option value="1=">Development ES6</option>
+    </select>
+    <script>!function(d,e){e=d.cookie.split('=')[1]||5
+    d.querySelector('#es [value="'+e+'="]').selected=1}(document)</script>
+
+    <h1><a href="../index.html">Seqin Demo</a></h1>
     <h2>Seqin Demo 1: Basic Sine Wave</h2>
 
     <pre id="output"></pre>
@@ -48,7 +62,10 @@
     '=================='
     </a></pre>
 
-    <script src="../dist/examples/example-1-basic-sine-wave.es5.js"></script>
+
+
+    <!-- <script>window.onload = window.FOO</script> -->
+    <!-- <script src="../dist/examples/example-1-basic-sine-wave.es5.js"></script> -->
 
   </body>
 </html>
