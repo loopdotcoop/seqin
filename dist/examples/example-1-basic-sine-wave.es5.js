@@ -1,7 +1,7 @@
 "use strict";
 !function() {
   'use strict';
-  var worker = new Worker('../dist/seqin-worker.js');
+  var worker = new Worker('../dist/worker/seqin-worker.es5.js');
   var demo1 = window.DEMO = new Seqin({
     worker: worker,
     tracks: 2,
