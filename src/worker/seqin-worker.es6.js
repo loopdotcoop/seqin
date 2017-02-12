@@ -1,7 +1,7 @@
 !function () { 'use strict'
 
 const NAME     = 'seqin-worker'
-    , VERSION  = '0.0.10'
+    , VERSION  = '0.0.11'
     , HOMEPAGE = 'http://seqin.loop.coop/'
 ;
 

@@ -1,13 +1,25 @@
 !function () { 'use strict'
 
-const NAME     = 'seqin'
-    , VERSION  = '0.0.10'
-    , HOMEPAGE = 'http://seqin.loop.coop/'
-;
 
-window.Seqin = class Seqin {
+const SEQIN = window.SEQIN = window.SEQIN || {}
+
+SEQIN.NAME     = 'seqin'
+SEQIN.VERSION  = '0.0.11'
+SEQIN.HOMEPAGE = 'http://seqin.loop.coop/'
+
+//// Dependencies.
+let Slot
+  , TrackSlot
+  , MasterSlot
+
+
+SEQIN.Main = class {
 
     constructor (config) {
+
+        Slot       = SEQIN.Slot
+        TrackSlot  = SEQIN.TrackSlot
+        MasterSlot = SEQIN.MasterSlot
 
         this.worker = config.worker
         this.fidelity = config.fidelity || 5600
@@ -142,6 +154,7 @@ window.Seqin = class Seqin {
     }
 }
 
+
 class Step {
 
     constructor (id, seqin) {
@@ -180,6 +193,7 @@ class Step {
 
 }
 
+
 class Track {
 
     constructor (id, seqin) {
@@ -208,103 +222,6 @@ class Note {
             seqin.steps[++stepId % stepCount].addNote(this, 'sustain')
         for (let i=0; i<this.voice.release; i++)
             seqin.steps[++stepId % stepCount].addNote(this, 'release')
-    }
-
-}
-
-
-class Slot {
-
-    constructor (seqin) {
-        this.buffer = seqin.ctx.createBuffer(
-            1                    // mono
-          , seqin.fidelity       // 5400 frames, by default
-          , seqin.ctx.sampleRate //
-        )
-    }
-
-}
-
-
-class TrackSlot extends Slot {
-
-    constructor (seqin) {
-        super(seqin)
-        this.note = null
-        this.adsr = null
-    }
-
-    update (note, adsr) {
-        this.note = note
-        this.adsr = adsr
-        note.voice.fillBuffer({
-            buffer:   this.buffer.getChannelData(0)
-          , adsr:     adsr
-          , pitch:    note.pitch
-          , velocity: note.velocity
-        })
-    }
-
-    dump () {
-        return (
-            'attack'  === this.adsr ? this.note.pitch.split('').join('\u0332') + '\u0332'
-          : 'decay'   === this.adsr ? this.note.pitch
-          : 'sustain' === this.adsr ? this.note.pitch.toLowerCase()
-          : 'release' === this.adsr ? '..'
-          :                           '  ' // empty slot
-        )
-    }
-
-}
-
-
-class MasterSlot extends Slot {
-
-    constructor (seqin) {
-        super(seqin)
-        this.seqin = seqin
-        this.isMixing = false
-    }
-
-    mix (trackSlots) {
-        this.isMixing = true
-
-        //// Record the list of track-slots - used by dump()
-        this.trackSlots = trackSlots
-
-        //// We need a fresh offline audio context for each new mix
-        const offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(
-            1                         // mono
-          , this.seqin.fidelity       // 5400 frames, by default
-          , this.seqin.ctx.sampleRate //
-        )
-
-        //// Connect each track-slot to the offline audio context.
-        for (let i=0, trackSlot; trackSlot=trackSlots[i++];) {
-            let source = offlineCtx.createBufferSource()
-            source.buffer = trackSlot.buffer
-            source.connect(offlineCtx.destination)
-            source.start()
-        }
-
-        //// Mix the track-slots. @todo modern browsers should use promises
-        // offlineCtx.startRendering()
-        //    .then( buffer => (this.buffer = buffer, this.isMixing = false) )
-        //    .catch( err => console.log('Rendering failed: ' + err) )
-        offlineCtx.startRendering()
-        offlineCtx.oncomplete = e => { // Safari needs this older syntax
-            this.buffer = e.renderedBuffer
-            this.isMixing = false
-        }
-
-    }
-
-    dump () {
-        return (
-              (! this.trackSlots) ? ' '
-            : this.isMixing       ? '!!!'
-            : this.trackSlots.map( slot => slot.dump() ).join('+')
-        )
     }
 
 }

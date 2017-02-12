@@ -1,14 +1,26 @@
-//// src/main/seqin.es6.js
+//// src/main/Main.es6.js
 !function () { 'use strict'
 
-const NAME     = 'seqin'
-    , VERSION  = '0.0.10'
-    , HOMEPAGE = 'http://seqin.loop.coop/'
-;
 
-window.Seqin = class Seqin {
+const SEQIN = window.SEQIN = window.SEQIN || {}
+
+SEQIN.NAME     = 'seqin'
+SEQIN.VERSION  = '0.0.11'
+SEQIN.HOMEPAGE = 'http://seqin.loop.coop/'
+
+//// Dependencies.
+let Slot
+  , TrackSlot
+  , MasterSlot
+
+
+SEQIN.Main = class {
 
     constructor (config) {
+
+        Slot       = SEQIN.Slot
+        TrackSlot  = SEQIN.TrackSlot
+        MasterSlot = SEQIN.MasterSlot
 
         this.worker = config.worker
         this.fidelity = config.fidelity || 5600
@@ -143,6 +155,7 @@ window.Seqin = class Seqin {
     }
 }
 
+
 class Step {
 
     constructor (id, seqin) {
@@ -181,6 +194,7 @@ class Step {
 
 }
 
+
 class Track {
 
     constructor (id, seqin) {
@@ -214,7 +228,17 @@ class Note {
 }
 
 
-class Slot {
+}()
+
+//// src/main/Slot.es6.js
+!function () { 'use strict'
+
+
+const SEQIN = window.SEQIN = window.SEQIN || {}
+
+
+//// `Slot`
+SEQIN.Slot = class {
 
     constructor (seqin) {
         this.buffer = seqin.ctx.createBuffer(
@@ -227,7 +251,8 @@ class Slot {
 }
 
 
-class TrackSlot extends Slot {
+//// `TrackSlot`
+SEQIN.TrackSlot = class extends SEQIN.Slot {
 
     constructor (seqin) {
         super(seqin)
@@ -259,7 +284,8 @@ class TrackSlot extends Slot {
 }
 
 
-class MasterSlot extends Slot {
+//// `MasterSlot`
+SEQIN.MasterSlot = class extends SEQIN.Slot {
 
     constructor (seqin) {
         super(seqin)

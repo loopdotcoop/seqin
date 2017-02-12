@@ -6,12 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Audio sequencer for Looptopia by Loop.Coop">
 
-    <script src="traceur-runtime.js"></script>
+    <!-- <script src="traceur-runtime.js"></script>
     <script>!function(d,c,e){c=function(p,s){s=d.createElement('script');s.src=p
     d.head.appendChild(s)};e=d.cookie.split('=')[1]||5
-    c('../'+(1==e?'src':'dist')+'/main/seqin.es'+(1==e?6:e)+'.js')
-    c('../'+(1==e?'src':'dist')+'/examples/example-1-basic-sine-wave.es'+(1==e?6:e)+'.js')
-    }(document)</script>
+    if (1==e)
+        c('../src/main/seqin.class.es6.js')
+      , c('../src/main/seqin.slot.class.es6.js')
+      , c('../src/examples/example-1-basic-sine-wave.es6.js')
+    else
+        c('../dist/main/seqin.es'+e+'.js')
+      , c('../dist/examples/example-1-basic-sine-wave.es'+e+'.js')
+    }(document)</script> -->
 
     <style type="text/css">
       .button {
@@ -63,9 +68,34 @@
     </a></pre>
 
 
-
-    <!-- <script>window.onload = window.FOO</script> -->
-    <!-- <script src="../dist/examples/example-1-basic-sine-wave.es5.js"></script> -->
-
+    <!-- Load the proper scripts, according to the <SELECT> dropdown menu -->
+    <script>!function (d) { 'use strict'
+        var e = d.cookie.split('=')[1] || 5 // '1', '5', '5.min' or '6'
+          , f = (1 == e) ? '../src/' : '../dist/' // folder
+          , s = // src values
+                (1 == e) ? [ // Development ES6
+                    f + 'main/Main.es6.js'
+                  , f + 'main/Slot.es6.js'
+                  , 6
+                ]
+              : (6 == e) ? [ // Production ES6
+                    f + 'main/seqin.es6.js'
+                  , 6
+                ]
+              : ('5.min' == e) ? [ // Production Minified ES5
+                  , 'traceur-runtime.js'
+                  , f + 'main/seqin.es5.min.js'
+                  , 5
+                ]
+              : [ // Production ES5 (the default, if no cookie has been set)
+                  , 'traceur-runtime.js'
+                  , f + 'main/seqin.es5.js'
+                  , 5
+                ]
+          , B = '<script src="'  // begin
+          , E = '"></'+'script>' // end
+        s.push(f + 'examples/example-1-basic-sine-wave.es' + s.pop() + '.js')
+        d.write(B + s.join(E + B) + E)
+    }(document)</script>
   </body>
 </html>

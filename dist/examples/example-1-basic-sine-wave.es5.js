@@ -1,19 +1,11 @@
 "use strict";
 !function() {
   'use strict';
-  var giveUp = 99;
-  function wait() {
-    if ('function' === typeof Seqin)
-      init();
-    else if (!giveUp--)
-      alert('Given up waiting for Seqin!');
-    else
-      setTimeout(wait, 100);
-  }
-  wait();
+  init();
   function init() {
-    var worker = new Worker('../dist/worker/seqin-worker.es5.js');
-    var demo1 = window.DEMO = new Seqin({
+    var e = document.cookie.split('=')[1] || 5,
+        worker = new Worker('../' + (1 == e ? 'src' : 'dist') + '/worker/seqin-worker.es' + (1 == e ? 6 : e) + '.js');
+    var demo1 = window.DEMO = new SEQIN.Main({
       worker: worker,
       tracks: 2,
       steps: 16,

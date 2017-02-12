@@ -1,7 +1,7 @@
 !function () { 'use strict'
 
 const NAME     = 'Seqin Make'
-    , VERSION  = '0.0.2'
+    , VERSION  = '0.0.3'
     , HOMEPAGE = 'http://seqin.loop.coop/'
 
     , HELP =
@@ -22,7 +22,7 @@ $ node make.js
 Make Tasks
 ----------
 1. Copy ‘src/worker/...’ as-is, transpile it to ES5, and minify it
-2. Copy each ‘src/examples/...’ file as-is, transpile to ES5 and minify
+2. Copy each ‘src/examples/...’ file as-is, and transpile to ES5
 3. Concatenate the files in ‘src/main/’ to ‘dist/main/seqin.es6.js’
 4. Transpile the new ‘seqin.es6.js’ to ‘seqin.es5.js’
 5. Minify ‘seqin.es5.js’ to ‘seqin.es5.min.js’
@@ -69,20 +69,14 @@ fs.writeFileSync( 'dist/worker/seqin-worker.es5.js', es5 )
 fs.writeFileSync( 'dist/worker/seqin-worker.es5.min.js', min.code )
 
 
-//// 2. Copy each ‘src/examples/...’ file as-is, transpile to ES5 and minify
+//// 2. Copy each ‘src/examples/...’ file as-is, and transpile to ES5
 examples = fs.readdirSync('src/examples')
 examples.forEach( name => {
     if ( '.es6.js' !== name.slice(-7) ) return
-    let noext = name.slice(0,-7)
     es6 = fs.readFileSync('src/examples/' + name)+''
-    es6 = es6.replace(/\.\.\/src\/worker\//g, '../dist/worker/') // modify URL
     es5 = traceur.compile( es6, { blockBinding:true } )
-    min = uglify.minify( es5, minConfig('dist/examples/' + noext + '.es5.min.js') )
-    es5 = es5.replace(/\.es6\.js/g, '.es5.js') // modify the worker URL...
-    min = min.code.replace(/\.es6\.js/g, '.es5.min.js') // ...and here
     fs.writeFileSync( 'dist/examples/' + name, es6 )
-    fs.writeFileSync( 'dist/examples/' + noext + '.es5.js', es5 )
-    fs.writeFileSync( 'dist/examples/' + noext + '.es5.min.js', min )
+    fs.writeFileSync( 'dist/examples/' + name.slice(0,-7) + '.es5.js', es5 )
 })
 
 

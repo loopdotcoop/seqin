@@ -1,25 +1,19 @@
 !function () { 'use strict'
 
-//// Poll for Seqin’s script to load.
-let giveUp = 99
-function wait () {
-    if ('function' === typeof Seqin)
-        init()
-    else if (! giveUp--)
-        alert('Given up waiting for Seqin!')
-    else
-        setTimeout(wait, 100)
-}
-wait()
+init()
 
 //// Initialise the demo.
 function init () {
 
-    //// Load Web Worker functionality (shared by all Seqin instances..?)
-    const worker = new Worker('../src/worker/seqin-worker.es6.js');
+    //// Load the proper Web Worker, according to the <SELECT> dropdown menu.
+    const e = document.cookie.split('=')[1] || 5 // '1', '5', '5.min' or '6'
+        , worker = new Worker(
+              '../' + (1 == e ? 'src' : 'dist') // '1' signifies development
+            + '/worker/seqin-worker.es' + (1 == e ? 6 : e) + '.js'
+          )
 
     //// Create a Seqin instance.
-    const demo1 = window.DEMO = new Seqin({
+    const demo1 = window.DEMO = new SEQIN.Main({
         worker:   worker // runs a metronome, outside of the main thread
       , tracks:   2      // number of audio channels (default 2)
       , steps:    16     // defines the grid (default 16)
