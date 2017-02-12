@@ -6,18 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Audio sequencer for Looptopia by Loop.Coop">
 
-    <!-- <script src="traceur-runtime.js"></script>
-    <script>!function(d,c,e){c=function(p,s){s=d.createElement('script');s.src=p
-    d.head.appendChild(s)};e=d.cookie.split('=')[1]||5
-    if (1==e)
-        c('../src/main/seqin.class.es6.js')
-      , c('../src/main/seqin.slot.class.es6.js')
-      , c('../src/examples/example-1-basic-sine-wave.es6.js')
-    else
-        c('../dist/main/seqin.es'+e+'.js')
-      , c('../dist/examples/example-1-basic-sine-wave.es'+e+'.js')
-    }(document)</script> -->
-
     <style type="text/css">
       .button {
         cursor: pointer;
@@ -76,6 +64,7 @@
                 (1 == e) ? [ // Development ES6
                     f + 'main/Main.es6.js'
                   , f + 'main/Slot.es6.js'
+                  , f + 'main/Voice.es6.js'
                   , 6
                 ]
               : (6 == e) ? [ // Production ES6
@@ -83,7 +72,7 @@
                   , 6
                 ]
               : ('5.min' == e) ? [ // Production Minified ES5
-                  , 'traceur-runtime.js'
+                  , 'traceur-runtime.min.js'
                   , f + 'main/seqin.es5.min.js'
                   , 5
                 ]

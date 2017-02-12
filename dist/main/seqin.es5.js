@@ -255,4 +255,21 @@
     }, {}, $__super);
   }(SEQIN.Slot);
 }();
+!function() {
+  'use strict';
+  var SEQIN = window.SEQIN = window.SEQIN || {};
+  SEQIN.Voice = ($traceurRuntime.createClass)(function(seqin) {}, {}, {});
+  SEQIN.Buzz = function($__super) {
+    function $__0() {
+      $traceurRuntime.superConstructor($__0).apply(this, arguments);
+    }
+    return ($traceurRuntime.createClass)($__0, {}, {}, $__super);
+  }(SEQIN.Voice);
+  SEQIN.Noise = function($__super) {
+    function $__2() {
+      $traceurRuntime.superConstructor($__2).apply(this, arguments);
+    }
+    return ($traceurRuntime.createClass)($__2, {}, {}, $__super);
+  }(SEQIN.Voice);
+}();
 //# sourceURL=<compile-source>
