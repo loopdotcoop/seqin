@@ -5,7 +5,7 @@
 const SEQIN = window.SEQIN = window.SEQIN || {}
 
 SEQIN.NAME     = 'seqin'
-SEQIN.VERSION  = '0.0.11'
+SEQIN.VERSION  = '0.0.12'
 SEQIN.HOMEPAGE = 'http://seqin.loop.coop/'
 
 //// Dependencies.
@@ -23,7 +23,7 @@ SEQIN.Main = class {
         MasterSlot = SEQIN.MasterSlot
 
         this.worker = config.worker
-        this.fidelity = config.fidelity || 5600
+        this.fidelity = config.fidelity || 5400
         this.notes = []
 
         this.cbs = { '*':[] } // event-listener callbacks @todo +'play' etc
@@ -39,8 +39,9 @@ SEQIN.Main = class {
         //// Create each track.
         this.tracks = []
         for (let i=0; i<(config.tracks||1); i++) {
-            this.tracks.push( new Track(i, this) )
+            this.tracks.push( new TrackChannel(i, this) )
         }
+        this.masterChannel = new MasterChannel(this)
 
         //// Create each step.
         this.steps = []
@@ -148,9 +149,12 @@ SEQIN.Main = class {
           + `    duplicate ticks: ${this.duplicateTicks}\n`
           + `    missed ticks: ${this.missedTicks}`
         ]
+
+        //// Dump each step.
         for (let i=0, step; step=this.steps[i++];) {
             out.push( step.dump() )
         }
+
         return out.join('\n')
     }
 }
@@ -165,17 +169,12 @@ class Step {
 
         //// Create a slot for each track.
         this.trackSlots = []
-        for (let i=0; i<seqin.tracks.length; i++) {
-            this.trackSlots.push( new TrackSlot(seqin) )
+        for (let i=0, track; track=seqin.tracks[i++];) {
+            this.trackSlots.push( new TrackSlot(seqin, track) )
         }
 
-        //// Create the master-mix slot.
-        this.masterSlot = new MasterSlot(seqin)
-    }
-
-    addNote (note, adsr) {
-        this.trackSlots[note.track].update(note, adsr)
-        this.masterSlot.mix( this.trackSlots.filter( slot => slot.note ) )
+        //// Create the master-mix slot. @todo maybe a `Step` should become a `MasterSlot`?
+        this.masterSlot = new MasterSlot(seqin, seqin.masterChannel, this.trackSlots)
     }
 
     dump () {
@@ -186,25 +185,59 @@ class Step {
         out.push( ' '.repeat(maxIdLen - thisIdLen) )
         out.push(this.id)
         for (let i=0, slot; slot=this.trackSlots[i++];) {
-            out.push( `| ${slot.dump()} |` )
+            out.push( `|${slot.dump()}|` )
         }
-        out.push( this.masterSlot.dump() )
-        return out.join(' ')
+        out.push( `|${this.masterSlot.dump()}|` )
+        return out.join('')
     }
 
 }
 
 
-class Track {
+class Channel {
+
+    constructor (seqin) {
+        this.seqin = seqin
+        this.max = 0 // longest `text` of all the steps in this channel
+    }
+
+}
+
+
+class TrackChannel extends Channel {
 
     constructor (id, seqin) {
+        super(seqin)
         this.id = id
-        this.seqin = seqin
         this.notes = {}
     }
 
     addNote (note) {
         this.notes[note.id] = note
+        this.updateMax()
+    }
+
+    updateMax () {
+        this.seqin.steps.forEach(
+            step => step.trackSlots.forEach(
+                slot => this.max = Math.max(this.max, slot.text.length)
+            )
+        )
+    }
+
+}
+
+
+class MasterChannel extends Channel {
+
+    constructor (seqin) {
+        super(seqin)
+    }
+
+    updateMax () {
+        this.seqin.steps.forEach(
+            step => this.max = Math.max(this.max, step.masterSlot.text.length)
+        )
     }
 
 }
@@ -213,16 +246,16 @@ class Track {
 class Note {
 
     constructor (config, seqin) {
+
+        //// Record `voice`, `track`, `on`, `duration`, `pitch` and `velocity`.
         for (let key in config) this[key] = config[key]
+
+        //// Tell the Voice to modify some of the TrackChannel’s Steps...
+        this.voice.updateSteps(config, seqin)
+
+        //// ...and then record the Note in its TrackChannel.
         seqin.tracks[this.track].addNote(this)
-        let stepId = this.on
-        let stepCount = seqin.steps.length
-        seqin.steps[  stepId % stepCount].addNote(this, 'attack')
-        seqin.steps[++stepId % stepCount].addNote(this, 'decay')
-        for (let i=0; i<this.duration; i++)
-            seqin.steps[++stepId % stepCount].addNote(this, 'sustain')
-        for (let i=0; i<this.voice.release; i++)
-            seqin.steps[++stepId % stepCount].addNote(this, 'release')
+
     }
 
 }
@@ -237,10 +270,14 @@ class Note {
 const SEQIN = window.SEQIN = window.SEQIN || {}
 
 
+const pad = ['', ' ', '  ', '   ', '    ', '     ', '      ', '       ']
+
+
 //// `Slot`
 SEQIN.Slot = class {
 
-    constructor (seqin) {
+    constructor (seqin, track) {
+        this.track = track
         this.buffer = seqin.ctx.createBuffer(
             1                    // mono
           , seqin.fidelity       // 5400 frames, by default
@@ -254,31 +291,15 @@ SEQIN.Slot = class {
 //// `TrackSlot`
 SEQIN.TrackSlot = class extends SEQIN.Slot {
 
-    constructor (seqin) {
-        super(seqin)
+    constructor (seqin, track) {
+        super(seqin, track)
         this.note = null
         this.adsr = null
-    }
-
-    update (note, adsr) {
-        this.note = note
-        this.adsr = adsr
-        note.voice.fillBuffer({
-            buffer:   this.buffer.getChannelData(0)
-          , adsr:     adsr
-          , pitch:    note.pitch
-          , velocity: note.velocity
-        })
+        this.text = ''
     }
 
     dump () {
-        return (
-            'attack'  === this.adsr ? this.note.pitch.split('').join('\u0332') + '\u0332'
-          : 'decay'   === this.adsr ? this.note.pitch
-          : 'sustain' === this.adsr ? this.note.pitch.toLowerCase()
-          : 'release' === this.adsr ? '..'
-          :                           '  ' // empty slot
-        )
+        return this.text + pad[ this.track.max - this.text.length ]
     }
 
 }
@@ -287,17 +308,17 @@ SEQIN.TrackSlot = class extends SEQIN.Slot {
 //// `MasterSlot`
 SEQIN.MasterSlot = class extends SEQIN.Slot {
 
-    constructor (seqin) {
-        super(seqin)
+    constructor (seqin, track, trackSlots) {
+        super(seqin, track)
         this.seqin = seqin
         this.isMixing = false
+        this.trackSlots = trackSlots
+        this.text = ''
     }
 
-    mix (trackSlots) {
-        this.isMixing = true
+    mix () {// step.trackSlots.filter( slot => slot.note )
 
-        //// Record the list of track-slots - used by dump()
-        this.trackSlots = trackSlots
+        this.isMixing = true
 
         //// We need a fresh offline audio context for each new mix
         const offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(
@@ -307,7 +328,8 @@ SEQIN.MasterSlot = class extends SEQIN.Slot {
         )
 
         //// Connect each track-slot to the offline audio context.
-        for (let i=0, trackSlot; trackSlot=trackSlots[i++];) {
+        for (let i=0, trackSlot; trackSlot=this.trackSlots[i++];) {
+            if ('' === trackSlot.text) continue // don’t mix an empty slot
             let source = offlineCtx.createBufferSource()
             source.buffer = trackSlot.buffer
             source.connect(offlineCtx.destination)
@@ -322,16 +344,19 @@ SEQIN.MasterSlot = class extends SEQIN.Slot {
         offlineCtx.oncomplete = e => { // Safari needs this older syntax
             this.buffer = e.renderedBuffer
             this.isMixing = false
+            const texts=[]
+            for (let i=0, slot; slot=this.trackSlots[i++];)
+                if ('' !== slot.text) texts.push(slot.text)
+            this.text = texts.join('+')
+            this.seqin.masterChannel.updateMax()
         }
 
     }
 
     dump () {
-        return (
-              (! this.trackSlots) ? ' '
-            : this.isMixing       ? '!!!'
-            : this.trackSlots.map( slot => slot.dump() ).join('+')
-        )
+        return this.isMixing ?
+            '!'.repeat(this.text.length)
+          : this.text + pad[ this.track.max - this.text.length ]
     }
 
 }
@@ -349,8 +374,25 @@ const SEQIN = window.SEQIN = window.SEQIN || {}
 //// `Voice`
 SEQIN.Voice = class {
 
-    constructor (seqin) {
+    //// The base `Voice` class just creates a simple click.
+    static updateSteps (config, seqin) {
+        const stepId    = config.on
+            , step      = seqin.steps[stepId]
+            , trackSlot = step.trackSlots[config.track]
+            , buffer    = trackSlot.buffer.getChannelData(0)
 
+        //// Add a simple click on the first sample.
+        buffer[0] = config.velocity
+        buffer[1] = config.velocity * 0.5
+
+        //// Modify track automation at the effected Step.
+        ////@todo gain ... EQ etc later
+
+        //// Generate a two-character representation.
+        trackSlot.text = 0.5 <= config.velocity ? '* ' : '· '
+
+        //// Update the Step’s master track. @todo wait for all Voice-updates
+        step.masterSlot.mix()
     }
 
 }
@@ -358,6 +400,35 @@ SEQIN.Voice = class {
 
 //// `Buzz`
 SEQIN.Buzz = class extends SEQIN.Voice {
+
+    static updateSteps (config, seqin) {
+        let stepId    = config.on
+          , stepCount = seqin.steps.length
+          , f = Math.PI * 2 * config.cycles / seqin.fidelity
+
+        //// Xx.
+        for (let i=0, step, trackSlot, buffer; i<config.duration; i++) {
+
+            step      = seqin.steps[stepId++ % stepCount]
+            trackSlot = step.trackSlots[config.track]
+            buffer    = trackSlot.buffer.getChannelData(0)
+
+            for (let j=0; j<5400; j++) {
+                buffer[j] = Math.sin(j * f) / 2
+            }
+
+            //// Generate a string-representation.
+            trackSlot.text = config.cycles+''
+
+            //// Modify track automation at the effected Step.
+            ////@todo gain ... EQ etc later
+
+            //// Update the Step’s master track. @todo wait for all Voice-updates
+            step.masterSlot.mix( step.trackSlots.filter( slot => slot.note ) )
+
+        }
+
+    }
 
 }
 
@@ -367,5 +438,37 @@ SEQIN.Noise = class extends SEQIN.Voice {
 
 }
 
+
+/*
+
+        //// Replace the first eight samples with a click.
+        buffer[0] = 0.125
+        buffer[1] = 0.45
+        buffer[2] = 0.125
+        buffer[3] = 0.25
+        buffer[4] = 0
+        buffer[5] = 0.375
+        buffer[6] = 0
+        buffer[7] = -0.45
+        buffer[8] = 0.125
+
+        //// Replace the last sixteen samples with a buzz.
+        buffer[l-1]  = 0
+        buffer[l-2]  = 0.25
+        buffer[l-3]  = -0.25
+        buffer[l-4]  = 0.25
+        buffer[l-5]  = -0.25
+        buffer[l-6]  = 0.25
+        buffer[l-7]  = -0.25
+        buffer[l-8]  = 0.25
+        buffer[l-9]  = -0.25
+        buffer[l-10] = 0.25
+        buffer[l-11] = -0.25
+        buffer[l-12] = 0.25
+        buffer[l-13] = -0.25
+        buffer[l-14] = 0.25
+        buffer[l-15] = -0.25
+        buffer[l-16] = 0.25
+*/
 
 }()

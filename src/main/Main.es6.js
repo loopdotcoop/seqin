@@ -4,7 +4,7 @@
 const SEQIN = window.SEQIN = window.SEQIN || {}
 
 SEQIN.NAME     = 'seqin'
-SEQIN.VERSION  = '0.0.11'
+SEQIN.VERSION  = '0.0.12'
 SEQIN.HOMEPAGE = 'http://seqin.loop.coop/'
 
 //// Dependencies.
@@ -22,7 +22,7 @@ SEQIN.Main = class {
         MasterSlot = SEQIN.MasterSlot
 
         this.worker = config.worker
-        this.fidelity = config.fidelity || 5600
+        this.fidelity = config.fidelity || 5400
         this.notes = []
 
         this.cbs = { '*':[] } // event-listener callbacks @todo +'play' etc
@@ -38,8 +38,9 @@ SEQIN.Main = class {
         //// Create each track.
         this.tracks = []
         for (let i=0; i<(config.tracks||1); i++) {
-            this.tracks.push( new Track(i, this) )
+            this.tracks.push( new TrackChannel(i, this) )
         }
+        this.masterChannel = new MasterChannel(this)
 
         //// Create each step.
         this.steps = []
@@ -147,9 +148,12 @@ SEQIN.Main = class {
           + `    duplicate ticks: ${this.duplicateTicks}\n`
           + `    missed ticks: ${this.missedTicks}`
         ]
+
+        //// Dump each step.
         for (let i=0, step; step=this.steps[i++];) {
             out.push( step.dump() )
         }
+
         return out.join('\n')
     }
 }
@@ -164,17 +168,12 @@ class Step {
 
         //// Create a slot for each track.
         this.trackSlots = []
-        for (let i=0; i<seqin.tracks.length; i++) {
-            this.trackSlots.push( new TrackSlot(seqin) )
+        for (let i=0, track; track=seqin.tracks[i++];) {
+            this.trackSlots.push( new TrackSlot(seqin, track) )
         }
 
-        //// Create the master-mix slot.
-        this.masterSlot = new MasterSlot(seqin)
-    }
-
-    addNote (note, adsr) {
-        this.trackSlots[note.track].update(note, adsr)
-        this.masterSlot.mix( this.trackSlots.filter( slot => slot.note ) )
+        //// Create the master-mix slot. @todo maybe a `Step` should become a `MasterSlot`?
+        this.masterSlot = new MasterSlot(seqin, seqin.masterChannel, this.trackSlots)
     }
 
     dump () {
@@ -185,25 +184,59 @@ class Step {
         out.push( ' '.repeat(maxIdLen - thisIdLen) )
         out.push(this.id)
         for (let i=0, slot; slot=this.trackSlots[i++];) {
-            out.push( `| ${slot.dump()} |` )
+            out.push( `|${slot.dump()}|` )
         }
-        out.push( this.masterSlot.dump() )
-        return out.join(' ')
+        out.push( `|${this.masterSlot.dump()}|` )
+        return out.join('')
     }
 
 }
 
 
-class Track {
+class Channel {
+
+    constructor (seqin) {
+        this.seqin = seqin
+        this.max = 0 // longest `text` of all the steps in this channel
+    }
+
+}
+
+
+class TrackChannel extends Channel {
 
     constructor (id, seqin) {
+        super(seqin)
         this.id = id
-        this.seqin = seqin
         this.notes = {}
     }
 
     addNote (note) {
         this.notes[note.id] = note
+        this.updateMax()
+    }
+
+    updateMax () {
+        this.seqin.steps.forEach(
+            step => step.trackSlots.forEach(
+                slot => this.max = Math.max(this.max, slot.text.length)
+            )
+        )
+    }
+
+}
+
+
+class MasterChannel extends Channel {
+
+    constructor (seqin) {
+        super(seqin)
+    }
+
+    updateMax () {
+        this.seqin.steps.forEach(
+            step => this.max = Math.max(this.max, step.masterSlot.text.length)
+        )
     }
 
 }
@@ -212,16 +245,16 @@ class Track {
 class Note {
 
     constructor (config, seqin) {
+
+        //// Record `voice`, `track`, `on`, `duration`, `pitch` and `velocity`.
         for (let key in config) this[key] = config[key]
+
+        //// Tell the Voice to modify some of the TrackChannel’s Steps...
+        this.voice.updateSteps(config, seqin)
+
+        //// ...and then record the Note in its TrackChannel.
         seqin.tracks[this.track].addNote(this)
-        let stepId = this.on
-        let stepCount = seqin.steps.length
-        seqin.steps[  stepId % stepCount].addNote(this, 'attack')
-        seqin.steps[++stepId % stepCount].addNote(this, 'decay')
-        for (let i=0; i<this.duration; i++)
-            seqin.steps[++stepId % stepCount].addNote(this, 'sustain')
-        for (let i=0; i<this.voice.release; i++)
-            seqin.steps[++stepId % stepCount].addNote(this, 'release')
+
     }
 
 }

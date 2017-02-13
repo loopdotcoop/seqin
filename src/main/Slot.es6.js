@@ -4,10 +4,14 @@
 const SEQIN = window.SEQIN = window.SEQIN || {}
 
 
+const pad = ['', ' ', '  ', '   ', '    ', '     ', '      ', '       ']
+
+
 //// `Slot`
 SEQIN.Slot = class {
 
-    constructor (seqin) {
+    constructor (seqin, track) {
+        this.track = track
         this.buffer = seqin.ctx.createBuffer(
             1                    // mono
           , seqin.fidelity       // 5400 frames, by default
@@ -21,31 +25,15 @@ SEQIN.Slot = class {
 //// `TrackSlot`
 SEQIN.TrackSlot = class extends SEQIN.Slot {
 
-    constructor (seqin) {
-        super(seqin)
+    constructor (seqin, track) {
+        super(seqin, track)
         this.note = null
         this.adsr = null
-    }
-
-    update (note, adsr) {
-        this.note = note
-        this.adsr = adsr
-        note.voice.fillBuffer({
-            buffer:   this.buffer.getChannelData(0)
-          , adsr:     adsr
-          , pitch:    note.pitch
-          , velocity: note.velocity
-        })
+        this.text = ''
     }
 
     dump () {
-        return (
-            'attack'  === this.adsr ? this.note.pitch.split('').join('\u0332') + '\u0332'
-          : 'decay'   === this.adsr ? this.note.pitch
-          : 'sustain' === this.adsr ? this.note.pitch.toLowerCase()
-          : 'release' === this.adsr ? '..'
-          :                           '  ' // empty slot
-        )
+        return this.text + pad[ this.track.max - this.text.length ]
     }
 
 }
@@ -54,17 +42,17 @@ SEQIN.TrackSlot = class extends SEQIN.Slot {
 //// `MasterSlot`
 SEQIN.MasterSlot = class extends SEQIN.Slot {
 
-    constructor (seqin) {
-        super(seqin)
+    constructor (seqin, track, trackSlots) {
+        super(seqin, track)
         this.seqin = seqin
         this.isMixing = false
+        this.trackSlots = trackSlots
+        this.text = ''
     }
 
-    mix (trackSlots) {
-        this.isMixing = true
+    mix () {// step.trackSlots.filter( slot => slot.note )
 
-        //// Record the list of track-slots - used by dump()
-        this.trackSlots = trackSlots
+        this.isMixing = true
 
         //// We need a fresh offline audio context for each new mix
         const offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(
@@ -74,7 +62,8 @@ SEQIN.MasterSlot = class extends SEQIN.Slot {
         )
 
         //// Connect each track-slot to the offline audio context.
-        for (let i=0, trackSlot; trackSlot=trackSlots[i++];) {
+        for (let i=0, trackSlot; trackSlot=this.trackSlots[i++];) {
+            if ('' === trackSlot.text) continue // don’t mix an empty slot
             let source = offlineCtx.createBufferSource()
             source.buffer = trackSlot.buffer
             source.connect(offlineCtx.destination)
@@ -89,16 +78,19 @@ SEQIN.MasterSlot = class extends SEQIN.Slot {
         offlineCtx.oncomplete = e => { // Safari needs this older syntax
             this.buffer = e.renderedBuffer
             this.isMixing = false
+            const texts=[]
+            for (let i=0, slot; slot=this.trackSlots[i++];)
+                if ('' !== slot.text) texts.push(slot.text)
+            this.text = texts.join('+')
+            this.seqin.masterChannel.updateMax()
         }
 
     }
 
     dump () {
-        return (
-              (! this.trackSlots) ? ' '
-            : this.isMixing       ? '!!!'
-            : this.trackSlots.map( slot => slot.dump() ).join('+')
-        )
+        return this.isMixing ?
+            '!'.repeat(this.text.length)
+          : this.text + pad[ this.track.max - this.text.length ]
     }
 
 }
