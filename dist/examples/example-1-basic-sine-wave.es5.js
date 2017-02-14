@@ -1,8 +1,8 @@
 "use strict";
 !function() {
   'use strict';
-  var e = document.cookie.split('=')[1] || 5,
-      worker = new Worker('../' + (1 == e ? 'src' : 'dist') + '/worker/seqin-worker.es' + (1 == e ? 6 : e) + '.js');
+  var i = ~~document.cookie.split('~')[1],
+      worker = new Worker('../' + (3 == i ? 'src' : 'dist') + '/worker/seqin-worker.es' + (1 < i ? 6 : 5) + '.js');
   var demo1 = window.DEMO = new SEQIN.Main({
     worker: worker,
     tracks: 2,

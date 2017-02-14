@@ -2,10 +2,10 @@
 
 
 //// Load the proper Web Worker, according to the <SELECT> dropdown menu.
-const e = document.cookie.split('=')[1] || 5 // '1', '5', '5.min' or '6'
+const i = ~~document.cookie.split('~')[1] // 0 - 3
     , worker = new Worker(
-          '../' + (1 == e ? 'src' : 'dist') // '1' signifies development
-        + '/worker/seqin-worker.es' + (1 == e ? 6 : e) + '.js'
+          '../' + (3 == i ? 'src' : 'dist') // `3` signifies development
+        + '/worker/seqin-worker.es' + (1 < i ? 6 : 5) + '.js'
       )
 
 //// Create a Seqin instance.
