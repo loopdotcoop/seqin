@@ -1,5 +1,9 @@
 !function () { 'use strict'
 
+let demo1;
+
+initDemo()
+function initDemo () {
 
 //// Load the proper Web Worker, according to the <SELECT> dropdown menu.
 const i = ~~document.cookie.split('~')[1] // 0 - 3
@@ -9,7 +13,7 @@ const i = ~~document.cookie.split('~')[1] // 0 - 3
       )
 
 //// Create a Seqin instance.
-const demo1 = window.DEMO = new SEQIN.Main({
+demo1 = window.DEMO = new SEQIN.Main({
     worker:   worker // runs a metronome, outside of the main thread
   , tracks:   2      // number of audio channels (default 2)
   , steps:    16     // defines the grid (default 16)
@@ -58,5 +62,14 @@ window.addExampleNote = function () {
     }
 }
 
+} //init()
+
+window.unlockAudio = function () {
+    var buffer = demo1.ctx.createBuffer(1, 1, 22050)
+    var source = demo1.ctx.createBufferSource()
+    source.buffer = buffer
+    source.connect(demo1.ctx.destination)
+    if ('function' == typeof source.noteOn) source.noteOn(0)
+}
 
 }()
