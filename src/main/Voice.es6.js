@@ -53,6 +53,35 @@ SEQIN.Buzz = class extends SEQIN.Voice {
             //// Generate a string-representation.
             trackSlot.text = config.cycles+''
 
+        //// Replace the first eight samples with a click.
+        buffer[0] = 0.125
+        buffer[1] = 0.45
+        buffer[2] = 0.125
+        buffer[3] = 0.25
+        buffer[4] = 0
+        buffer[5] = 0.375
+        buffer[6] = 0
+        buffer[7] = -0.45
+        buffer[8] = 0.125
+
+        //// Replace the last sixteen samples with a buzz.
+        buffer[5400-1]  = 0
+        buffer[5400-2]  = 0.25
+        buffer[5400-3]  = -0.25
+        buffer[5400-4]  = 0.25
+        buffer[5400-5]  = -0.25
+        buffer[5400-6]  = 0.25
+        buffer[5400-7]  = -0.25
+        buffer[5400-8]  = 0.25
+        buffer[5400-9]  = -0.25
+        buffer[5400-10] = 0.25
+        buffer[5400-11] = -0.25
+        buffer[5400-12] = 0.25
+        buffer[5400-13] = -0.25
+        buffer[5400-14] = 0.25
+        buffer[5400-15] = -0.25
+        buffer[5400-16] = 0.25
+
             //// Modify track automation at the effected Step.
             ////@todo gain ... EQ etc later
 
@@ -72,36 +101,7 @@ SEQIN.Noise = class extends SEQIN.Voice {
 }
 
 
-/*
 
-        //// Replace the first eight samples with a click.
-        buffer[0] = 0.125
-        buffer[1] = 0.45
-        buffer[2] = 0.125
-        buffer[3] = 0.25
-        buffer[4] = 0
-        buffer[5] = 0.375
-        buffer[6] = 0
-        buffer[7] = -0.45
-        buffer[8] = 0.125
 
-        //// Replace the last sixteen samples with a buzz.
-        buffer[l-1]  = 0
-        buffer[l-2]  = 0.25
-        buffer[l-3]  = -0.25
-        buffer[l-4]  = 0.25
-        buffer[l-5]  = -0.25
-        buffer[l-6]  = 0.25
-        buffer[l-7]  = -0.25
-        buffer[l-8]  = 0.25
-        buffer[l-9]  = -0.25
-        buffer[l-10] = 0.25
-        buffer[l-11] = -0.25
-        buffer[l-12] = 0.25
-        buffer[l-13] = -0.25
-        buffer[l-14] = 0.25
-        buffer[l-15] = -0.25
-        buffer[l-16] = 0.25
-*/
 
 }()
