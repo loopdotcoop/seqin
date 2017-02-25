@@ -11,7 +11,10 @@
       duplicateTickIds = [],
       previousTickId = null,
       syncOffset = 0,
-      startTime = +new Date();
+      startTime = +new Date(),
+      samplerate = 48000,
+      fidelity = 5400,
+      msPerStep = fidelity / samplerate * 1000;
   onmessage = function(e) {
     var $__1 = e.data,
         action = $__1.action,
@@ -19,13 +22,21 @@
     if ('sync' === action) {
       syncOffset = value - (+new Date() - startTime);
     }
+    if ('set-samplerate' === action) {
+      samplerate = value;
+      msPerStep = fidelity / samplerate * 1000;
+    }
+    if ('set-fidelity' === action) {
+      fidelity = value;
+      msPerStep = fidelity / samplerate * 1000;
+    }
   };
   tickCheck();
   function tickCheck() {
     var now = (+new Date() - startTime) + syncOffset,
-        timeSinceLastTick = now % 122.44897959183673,
-        notice = 122.44897959183673 - timeSinceLastTick,
-        tickId = Math.round((now + notice) / 122.44897959183673);
+        timeSinceLastTick = now % msPerStep,
+        notice = msPerStep - timeSinceLastTick,
+        tickId = Math.round((now + notice) / msPerStep);
     if (50 < notice)
       return setTimeout(tickCheck, 20);
     if (30 < notice)

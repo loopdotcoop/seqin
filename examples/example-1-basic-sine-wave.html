@@ -35,8 +35,8 @@
   </head>
   <body style="font-family:Arial, sans-serif; background:#ccc; color:#333">
 
-    <select id="es" style="float:right" onchange="
-        document.cookie='es='+this.selectedOptions[0].value;location.reload()">
+    <select id="es" style="float:right" onchange="document.cookie='es='
+      +this.options[this.selectedIndex].value;location.reload()">
       <option value="~0~">Production ES5</option><!-- default -->
       <option value="~1~">Production Minified ES5</option>
       <option value="~2~">Production ES6</option>

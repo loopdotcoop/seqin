@@ -14,6 +14,9 @@ let droppedTickIds   = []
   , previousTickId   = null
   , syncOffset       = 0
   , startTime        = +new Date()
+  , samplerate       = 48000 // default
+  , fidelity         = 5400  // default
+  , msPerStep        = fidelity / samplerate * 1000 // 112.5 at 48kHz
 
 
 //// Listen for messages from the seqin instance. @todo deal with 2+ instances?
@@ -22,6 +25,14 @@ onmessage = function(e) {
     if ('sync' === action) {
         syncOffset = value - ( +new Date() - startTime )
         // console.log(`${NAME} ${VERSION} sync-offset is ${syncOffset}`, value, (+new Date()-startTime) );
+    }
+    if ('set-samplerate' === action) {
+        samplerate = value
+        msPerStep = fidelity / samplerate * 1000
+    }
+    if ('set-fidelity' === action) {
+        fidelity = value
+        msPerStep = fidelity / samplerate * 1000
     }
 }
 
@@ -32,9 +43,9 @@ tickCheck()
 function tickCheck () {
 
     let now = ( +new Date() - startTime ) + syncOffset // current time in ms
-      , timeSinceLastTick = now % 122.44897959183673
-      , notice = 122.44897959183673 - timeSinceLastTick
-      , tickId = Math.round ( (now + notice) / 122.44897959183673 )
+      , timeSinceLastTick = now % msPerStep
+      , notice = msPerStep - timeSinceLastTick
+      , tickId = Math.round ( (now + notice) / msPerStep )
 
     //// If tick is not expected any time soon, go back to sleep.
     if (50 < notice) return setTimeout(tickCheck, 20) // over 50ms til next tick

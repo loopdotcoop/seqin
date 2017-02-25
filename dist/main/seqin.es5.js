@@ -3,64 +3,73 @@
   'use strict';
   var SEQIN = window.SEQIN = window.SEQIN || {};
   SEQIN.NAME = 'seqin';
-  SEQIN.VERSION = '0.0.14';
+  SEQIN.VERSION = '0.0.15';
   SEQIN.HOMEPAGE = 'http://seqin.loop.coop/';
   var Slot,
       TrackSlot,
       MasterSlot;
   SEQIN.Main = ($traceurRuntime.createClass)(function(config) {
-    var $__4 = this;
+    var $__3 = this;
     Slot = SEQIN.Slot;
     TrackSlot = SEQIN.TrackSlot;
     MasterSlot = SEQIN.MasterSlot;
+    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
     this.worker = config.worker;
     this.fidelity = config.fidelity || 5400;
+    this.secsPerStep = config.fidelity / this.ctx.sampleRate;
     this.notes = [];
     this.cbs = {'*': []};
     this.metronome = 'o';
     this.droppedTicks = 0;
     this.duplicateTicks = 0;
     this.missedTicks = 0;
-    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
     this.tracks = [];
     for (var i = 0; i < (config.tracks || 1); i++) {
       this.tracks.push(new TrackChannel(i, this));
     }
     this.masterChannel = new MasterChannel(this);
     this.steps = [];
-    for (var i$__6 = 0; i$__6 < (config.steps || 16); i$__6++) {
-      this.steps.push(new Step(i$__6, this));
+    for (var i$__5 = 0; i$__5 < (config.steps || 16); i$__5++) {
+      this.steps.push(new Step(i$__5, this));
     }
     this.isPlaying = true;
     this.activeStep = this.steps[0];
     this.activeStep.isActive = true;
     this.play();
+    this.worker.postMessage({
+      action: 'set-samplerate',
+      value: this.ctx.sampleRate
+    });
+    this.worker.postMessage({
+      action: 'set-fidelity',
+      value: this.fidelity
+    });
     setTimeout(function() {
-      $__4.worker.postMessage({
+      $__3.worker.postMessage({
         action: 'sync',
-        value: $__4.ctx.currentTime * 1000
+        value: $__3.ctx.currentTime * 1000
       });
     }, 1000);
     this.worker.onmessage = function(e) {
-      var $__5 = e.data,
-          action = $__5.action,
-          notice = $__5.notice,
-          now = $__5.now,
-          tickId = $__5.tickId,
-          dropped = $__5.dropped,
-          duplicate = $__5.duplicate;
+      var $__4 = e.data,
+          action = $__4.action,
+          notice = $__4.notice,
+          now = $__4.now,
+          tickId = $__4.tickId,
+          dropped = $__4.dropped,
+          duplicate = $__4.duplicate;
       if ('tick' === action) {
-        $__4.droppedTicks = dropped;
-        $__4.duplicateTicks = duplicate;
-        $__4.scheduleTick(notice);
+        $__3.droppedTicks = dropped;
+        $__3.duplicateTicks = duplicate;
+        $__3.scheduleTick(notice);
       }
     };
   }, {
     scheduleTick: function(notice) {
-      var $__4 = this;
+      var $__3 = this;
       var timestamp = this.ctx.currentTime,
-          timeSinceLastTick = timestamp % 0.12244897959183673,
-          timeTilNextTick = 0.12244897959183673 - timeSinceLastTick;
+          timeSinceLastTick = timestamp % this.secsPerStep,
+          timeTilNextTick = this.secsPerStep - timeSinceLastTick;
       if (this.isPlaying) {
         var source = this.ctx.createBufferSource(),
             nextStepId = (this.activeStep.id + 1) % this.steps.length,
@@ -76,7 +85,7 @@
         }
       }
       setTimeout(function() {
-        return $__4.tick();
+        return $__3.tick();
       }, notice + 30);
     },
     tick: function() {
@@ -97,9 +106,9 @@
             cb = void 0; cb = this.cbs[eventName][i++]; )
           cb(eventName);
       }
-      for (var i$__7 = 0,
-          cb$__8 = void 0; cb$__8 = this.cbs['*'][i$__7++]; )
-        cb$__8(eventName);
+      for (var i$__6 = 0,
+          cb$__7 = void 0; cb$__7 = this.cbs['*'][i$__6++]; )
+        cb$__7(eventName);
     },
     play: function() {
       if (this.isPlaying)
@@ -180,10 +189,10 @@
         this.updateMax();
       },
       updateMax: function() {
-        var $__4 = this;
+        var $__3 = this;
         this.seqin.steps.forEach(function(step) {
           return step.trackSlots.forEach(function(slot) {
-            return $__4.max = Math.max($__4.max, slot.text.length);
+            return $__3.max = Math.max($__3.max, slot.text.length);
           });
         });
       }
@@ -194,9 +203,9 @@
       $traceurRuntime.superConstructor(MasterChannel).call(this, seqin);
     }
     return ($traceurRuntime.createClass)(MasterChannel, {updateMax: function() {
-        var $__4 = this;
+        var $__3 = this;
         this.seqin.steps.forEach(function(step) {
-          return $__4.max = Math.max($__4.max, step.masterSlot.text.length);
+          return $__3.max = Math.max($__3.max, step.masterSlot.text.length);
         });
       }}, {}, $__super);
   }(Channel);
@@ -239,7 +248,7 @@
     }
     return ($traceurRuntime.createClass)($__2, {
       mix: function() {
-        var $__4 = this;
+        var $__3 = this;
         this.isMixing = true;
         var offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, this.seqin.fidelity, this.seqin.ctx.sampleRate);
         for (var i = 0,
@@ -253,15 +262,15 @@
         }
         offlineCtx.startRendering();
         offlineCtx.oncomplete = function(e) {
-          $__4.buffer = e.renderedBuffer;
-          $__4.isMixing = false;
+          $__3.buffer = e.renderedBuffer;
+          $__3.isMixing = false;
           var texts = [];
           for (var i = 0,
-              slot = void 0; slot = $__4.trackSlots[i++]; )
+              slot = void 0; slot = $__3.trackSlots[i++]; )
             if ('' !== slot.text)
               texts.push(slot.text);
-          $__4.text = texts.join('+');
-          $__4.seqin.masterChannel.updateMax();
+          $__3.text = texts.join('+');
+          $__3.seqin.masterChannel.updateMax();
         };
       },
       dump: function() {

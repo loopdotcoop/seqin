@@ -5,7 +5,7 @@
 const SEQIN = window.SEQIN = window.SEQIN || {}
 
 SEQIN.NAME     = 'seqin'
-SEQIN.VERSION  = '0.0.14'
+SEQIN.VERSION  = '0.0.15'
 SEQIN.HOMEPAGE = 'http://seqin.loop.coop/'
 
 //// Dependencies.
@@ -22,8 +22,11 @@ SEQIN.Main = class {
         TrackSlot  = SEQIN.TrackSlot
         MasterSlot = SEQIN.MasterSlot
 
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)()
+
         this.worker = config.worker
-        this.fidelity = config.fidelity || 5400
+        this.fidelity = config.fidelity || 5400 //@TODO samplesPerStep
+        this.secsPerStep = config.fidelity / this.ctx.sampleRate // eg 0.1125
         this.notes = []
 
         this.cbs = { '*':[] } // event-listener callbacks @todo +'play' etc
@@ -33,8 +36,6 @@ SEQIN.Main = class {
         this.droppedTicks = 0
         this.duplicateTicks = 0
         this.missedTicks = 0
-
-        this.ctx = new (window.AudioContext || window.webkitAudioContext)()
 
         //// Create each track.
         this.tracks = []
@@ -54,6 +55,16 @@ SEQIN.Main = class {
         this.activeStep = this.steps[0]
         this.activeStep.isActive = true
         this.play()
+
+        //// Update the worker’s default `samplerate` and `fidelity` settings.
+        this.worker.postMessage({
+            action: 'set-samplerate'
+          , value:  this.ctx.sampleRate
+        })
+        this.worker.postMessage({
+            action: 'set-fidelity'
+          , value:  this.fidelity
+        })
 
         //// Synchronise our AudioContext clock with the worker's clock.
         setTimeout( () => {
@@ -76,8 +87,8 @@ SEQIN.Main = class {
 
     scheduleTick (notice) {
         let timestamp = this.ctx.currentTime
-          , timeSinceLastTick = timestamp % 0.12244897959183673
-          , timeTilNextTick = 0.12244897959183673 - timeSinceLastTick
+          , timeSinceLastTick = timestamp % this.secsPerStep
+          , timeTilNextTick = this.secsPerStep - timeSinceLastTick
         if (this.isPlaying) {
             let source = this.ctx.createBufferSource()
               , nextStepId = (this.activeStep.id+1) % this.steps.length
