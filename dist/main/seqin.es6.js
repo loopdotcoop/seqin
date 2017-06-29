@@ -24,9 +24,10 @@ SEQIN.Main = class {
 
         this.ctx = new (window.AudioContext || window.webkitAudioContext)()
 
+		this.internalSampleRate = config.internalSampleRate || 48000;
         this.worker = config.worker
         this.fidelity = config.fidelity || 5400 //@TODO samplesPerStep
-        this.secsPerStep = config.fidelity / this.ctx.sampleRate // eg 0.1125
+        this.secsPerStep = config.fidelity / this.internalSampleRate // eg 0.1125
         this.notes = []
 
         this.cbs = { '*':[] } // event-listener callbacks @todo +'play' etc
@@ -59,7 +60,7 @@ SEQIN.Main = class {
         //// Update the worker’s default `samplerate` and `fidelity` settings.
         this.worker.postMessage({
             action: 'set-samplerate'
-          , value:  this.ctx.sampleRate
+          , value:  this.internalSampleRate
         })
         this.worker.postMessage({
             action: 'set-fidelity'
@@ -94,8 +95,13 @@ SEQIN.Main = class {
               , nextStepId = (this.activeStep.id+1) % this.steps.length
               , nextStep = this.steps[nextStepId]
               , timeOfNextTick = timestamp + timeTilNextTick
+
+
+			console.log(nextStep);
+			//const resampler = new OfflineAudioContext(1, )
             source.buffer = nextStep.masterSlot.buffer
             source.connect(this.ctx.destination)
+
             if (0 > timeTilNextTick) {
                 this.missedTicks++
                 source.start(0, - timeTilNextTick) // play immediately
@@ -155,7 +161,7 @@ SEQIN.Main = class {
 
     dump () {
         const out = [
-            `[${this.metronome}] ${this.ctx.sampleRate/1000}kHz\n`
+            `[${this.metronome}] ${this.internalSampleRate/1000}kHz\n`
           + `    dropped ticks: ${this.droppedTicks}\n`
           + `    duplicate ticks: ${this.duplicateTicks}\n`
           + `    missed ticks: ${this.missedTicks}`
@@ -292,7 +298,7 @@ SEQIN.Slot = class {
         this.buffer = seqin.ctx.createBuffer(
             1                    // mono
           , seqin.fidelity       // 5400 frames, by default
-          , seqin.ctx.sampleRate //
+          , seqin.internalSampleRate //
         )
     }
 
@@ -333,9 +339,9 @@ SEQIN.MasterSlot = class extends SEQIN.Slot {
 
         //// We need a fresh offline audio context for each new mix
         const offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(
-            1                         // mono
-          , this.seqin.fidelity       // 5400 frames, by default
-          , this.seqin.ctx.sampleRate //
+            1                             // mono
+          , this.seqin.fidelity           // 5400 frames, by default
+          , this.seqin.internalSampleRate //
         )
 
         //// Connect each track-slot to the offline audio context.
