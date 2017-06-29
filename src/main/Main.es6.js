@@ -14,20 +14,21 @@ let Slot
 
 
 SEQIN.Main = class {
-	get internalSampleRate() {
-		return this._internalSampleRate;
-	}
 
-	set internalSampleRate(value) {
-		this._internalSampleRate = value;
+  	get internalSampleRate() {
+    		return this._internalSampleRate;
+  	}
 
-		if(this.worker) {
-			this.worker.postMessage({
-				action: 'set-samplerate'
-			  , value:  this.internalSampleRate
-			})
-		}
-	}
+  	set internalSampleRate(value) {
+    		this._internalSampleRate = value;
+
+    		if (this.worker) {
+      			this.worker.postMessage({
+        				action: 'set-samplerate'
+        			, value:  this.internalSampleRate
+      			})
+    		}
+  	}
 
     constructor (config) {
 

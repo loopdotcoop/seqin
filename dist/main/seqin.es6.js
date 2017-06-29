@@ -15,20 +15,21 @@ let Slot
 
 
 SEQIN.Main = class {
-	get internalSampleRate() {
-		return this._internalSampleRate;
-	}
 
-	set internalSampleRate(value) {
-		this._internalSampleRate = value;
+  	get internalSampleRate() {
+    		return this._internalSampleRate;
+  	}
 
-		if(this.worker) {
-			this.worker.postMessage({
-				action: 'set-samplerate'
-			  , value:  this.internalSampleRate
-			})
-		}
-	}
+  	set internalSampleRate(value) {
+    		this._internalSampleRate = value;
+
+    		if (this.worker) {
+      			this.worker.postMessage({
+        				action: 'set-samplerate'
+        			, value:  this.internalSampleRate
+      			})
+    		}
+  	}
 
     constructor (config) {
 
@@ -38,7 +39,7 @@ SEQIN.Main = class {
 
         this.ctx = new (window.AudioContext || window.webkitAudioContext)()
 
-		this.internalSampleRate = config.internalSampleRate || 22100;
+        this.internalSampleRate = config.internalSampleRate || 75000;
         this.worker = config.worker
         this.fidelity = config.fidelity || 5400 //@TODO samplesPerStep
         this.secsPerStep = config.fidelity / this.internalSampleRate // eg 0.1125
@@ -114,7 +115,7 @@ SEQIN.Main = class {
               , timeOfNextTick = timestamp + timeTilNextTick
 
 
-			console.log(nextStep);
+			// console.log(nextStep);
 			//const resampler = new OfflineAudioContext(1, )
             source.buffer = nextStep.masterSlot.buffer
             source.connect(this.ctx.destination)
@@ -178,7 +179,8 @@ SEQIN.Main = class {
 
     dump () {
         const out = [
-            `[${this.metronome}] ${this.internalSampleRate/1000}kHz\n`
+            `[${this.metronome}] internal: ${this.internalSampleRate/1000}kHz\n`
+          + `    context: ${this.ctx.sampleRate/1000}kHz\n`
           + `    dropped ticks: ${this.droppedTicks}\n`
           + `    duplicate ticks: ${this.duplicateTicks}\n`
           + `    missed ticks: ${this.missedTicks}`
