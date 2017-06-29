@@ -14,7 +14,7 @@ let droppedTickIds   = []
   , previousTickId   = null
   , syncOffset       = 0
   , startTime        = +new Date()
-  , samplerate       = 48000 // default
+  , samplerate       = 96000 // default
   , fidelity         = 5400  // default
   , msPerStep        = fidelity / samplerate * 1000 // 112.5 at 48kHz
 
@@ -71,7 +71,7 @@ function tickCheck () {
     })
 
     //// ...and schedule the next check about 40ms after the tick has happened.
-    setTimeout(tickCheck, notice + 70)
+    setTimeout(tickCheck, notice + 20)
 }
 
 

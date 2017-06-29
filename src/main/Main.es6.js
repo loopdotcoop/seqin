@@ -23,7 +23,7 @@ SEQIN.Main = class {
 
         this.ctx = new (window.AudioContext || window.webkitAudioContext)()
 
-		this.internalSampleRate = config.internalSampleRate || 48000;
+		this.internalSampleRate = config.internalSampleRate || 96000;
         this.worker = config.worker
         this.fidelity = config.fidelity || 5400 //@TODO samplesPerStep
         this.secsPerStep = config.fidelity / this.internalSampleRate // eg 0.1125
@@ -61,6 +61,9 @@ SEQIN.Main = class {
             action: 'set-samplerate'
           , value:  this.internalSampleRate
         })
+		this.worker.postMessage({
+			action: 'set-secsperstep'
+		})
         this.worker.postMessage({
             action: 'set-fidelity'
           , value:  this.fidelity

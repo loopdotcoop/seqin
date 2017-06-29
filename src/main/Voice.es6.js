@@ -52,7 +52,7 @@ SEQIN.Buzz = class extends SEQIN.Voice {
 
             //// Generate a string-representation.
             trackSlot.text = config.cycles+''
-
+		/*
         //// Replace the first eight samples with a click.
         buffer[0] = 0.125
         buffer[1] = 0.45
@@ -81,13 +81,13 @@ SEQIN.Buzz = class extends SEQIN.Voice {
         buffer[5400-14] = 0.25
         buffer[5400-15] = -0.25
         buffer[5400-16] = 0.25
+		*/
 
             //// Modify track automation at the effected Step.
             ////@todo gain ... EQ etc later
 
             //// Update the Step’s master track. @todo wait for all Voice-updates
             step.masterSlot.mix( step.trackSlots.filter( slot => slot.note ) )
-
         }
 
     }
