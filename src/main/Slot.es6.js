@@ -15,7 +15,7 @@ SEQIN.Slot = class {
         this.buffer = seqin.ctx.createBuffer(
             1                    // mono
           , seqin.fidelity       // 5400 frames, by default
-          , seqin.ctx.sampleRate //
+          , seqin.internalSampleRate //
         )
     }
 
@@ -56,9 +56,9 @@ SEQIN.MasterSlot = class extends SEQIN.Slot {
 
         //// We need a fresh offline audio context for each new mix
         const offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(
-            1                         // mono
-          , this.seqin.fidelity       // 5400 frames, by default
-          , this.seqin.ctx.sampleRate //
+            1                             // mono
+          , this.seqin.fidelity           // 5400 frames, by default
+          , this.seqin.internalSampleRate //
         )
 
         //// Connect each track-slot to the offline audio context.
