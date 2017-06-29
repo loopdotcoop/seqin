@@ -67,6 +67,18 @@
       }
     };
   }, {
+    get internalSampleRate() {
+      return this._internalSampleRate;
+    },
+    set internalSampleRate(value) {
+      this._internalSampleRate = value;
+      if (this.worker) {
+        this.worker.postMessage({
+          action: 'set-samplerate',
+          value: this.internalSampleRate
+        });
+      }
+    },
     scheduleTick: function(notice) {
       var $__3 = this;
       var timestamp = this.ctx.currentTime,
