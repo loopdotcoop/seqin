@@ -14,9 +14,10 @@
     TrackSlot = SEQIN.TrackSlot;
     MasterSlot = SEQIN.MasterSlot;
     this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    this.internalSampleRate = config.internalSampleRate || 48000;
     this.worker = config.worker;
     this.fidelity = config.fidelity || 5400;
-    this.secsPerStep = config.fidelity / this.ctx.sampleRate;
+    this.secsPerStep = config.fidelity / this.internalSampleRate;
     this.notes = [];
     this.cbs = {'*': []};
     this.metronome = 'o';
@@ -38,7 +39,7 @@
     this.play();
     this.worker.postMessage({
       action: 'set-samplerate',
-      value: this.ctx.sampleRate
+      value: this.internalSampleRate
     });
     this.worker.postMessage({
       action: 'set-fidelity',
@@ -75,6 +76,7 @@
             nextStepId = (this.activeStep.id + 1) % this.steps.length,
             nextStep = this.steps[nextStepId],
             timeOfNextTick = timestamp + timeTilNextTick;
+        console.log(nextStep);
         source.buffer = nextStep.masterSlot.buffer;
         source.connect(this.ctx.destination);
         if (0 > timeTilNextTick) {
@@ -135,7 +137,7 @@
       return config.id;
     },
     dump: function() {
-      var out = [("[" + this.metronome + "] " + this.ctx.sampleRate / 1000 + "kHz\n") + ("    dropped ticks: " + this.droppedTicks + "\n") + ("    duplicate ticks: " + this.duplicateTicks + "\n") + ("    missed ticks: " + this.missedTicks)];
+      var out = [("[" + this.metronome + "] " + this.internalSampleRate / 1000 + "kHz\n") + ("    dropped ticks: " + this.droppedTicks + "\n") + ("    duplicate ticks: " + this.duplicateTicks + "\n") + ("    missed ticks: " + this.missedTicks)];
       for (var i = 0,
           step = void 0; step = this.steps[i++]; ) {
         out.push(step.dump());
@@ -225,7 +227,7 @@
   var pad = ['', ' ', '  ', '   ', '    ', '     ', '      ', '       '];
   SEQIN.Slot = ($traceurRuntime.createClass)(function(seqin, track) {
     this.track = track;
-    this.buffer = seqin.ctx.createBuffer(1, seqin.fidelity, seqin.ctx.sampleRate);
+    this.buffer = seqin.ctx.createBuffer(1, seqin.fidelity, seqin.internalSampleRate);
   }, {}, {});
   SEQIN.TrackSlot = function($__super) {
     function $__1(seqin, track) {
@@ -250,7 +252,7 @@
       mix: function() {
         var $__3 = this;
         this.isMixing = true;
-        var offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, this.seqin.fidelity, this.seqin.ctx.sampleRate);
+        var offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, this.seqin.fidelity, this.seqin.internalSampleRate);
         for (var i = 0,
             trackSlot = void 0; trackSlot = this.trackSlots[i++]; ) {
           if ('' === trackSlot.text)

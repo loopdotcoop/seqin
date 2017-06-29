@@ -4,7 +4,7 @@
 const SEQIN = window.SEQIN = window.SEQIN || {}
 
 SEQIN.NAME     = 'seqin'
-SEQIN.VERSION  = '0.0.15'
+SEQIN.VERSION  = '0.0.16'
 SEQIN.HOMEPAGE = 'http://seqin.loop.coop/'
 
 //// Dependencies.
