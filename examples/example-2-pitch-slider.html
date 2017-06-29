@@ -73,6 +73,23 @@
     '=============='
     </a></pre>
 
+    <input id="internal-sample-rate-input" type="range" min="22000" max="100000" value="48000" />
+    <p id="internal-sample-rate-output">48000Hz</p>
+
+
+
+    <!-- Load the proper scripts, according to the <SELECT> dropdown menu -->
+    <script>!function (d) { 'use strict'
+        var $in  = document.querySelector('#internal-sample-rate-input')
+          , $out = document.querySelector('#internal-sample-rate-output')
+        $in.addEventListener('change', function () {
+            $out.innerHTML = $in.value + 'Hz'
+            SEQIN.internalSampleRate = $in.value
+        })
+    }(document)</script>
+
+
+
     <!-- Load the proper scripts, according to the <SELECT> dropdown menu -->
     <script>!function (d) { 'use strict'
         var i = ~~d.cookie.split('~')[1] // 0 - 3
