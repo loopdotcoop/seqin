@@ -3,7 +3,7 @@
   'use strict';
   var SEQIN = window.SEQIN = window.SEQIN || {};
   SEQIN.NAME = 'seqin';
-  SEQIN.VERSION = '0.0.15';
+  SEQIN.VERSION = '0.0.16';
   SEQIN.HOMEPAGE = 'http://seqin.loop.coop/';
   var Slot,
       TrackSlot,
@@ -14,7 +14,7 @@
     TrackSlot = SEQIN.TrackSlot;
     MasterSlot = SEQIN.MasterSlot;
     this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-    this.internalSampleRate = config.internalSampleRate || 48000;
+    this.internalSampleRate = config.internalSampleRate || 22100;
     this.worker = config.worker;
     this.fidelity = config.fidelity || 5400;
     this.secsPerStep = config.fidelity / this.internalSampleRate;
@@ -41,6 +41,7 @@
       action: 'set-samplerate',
       value: this.internalSampleRate
     });
+    this.worker.postMessage({action: 'set-secsperstep'});
     this.worker.postMessage({
       action: 'set-fidelity',
       value: this.fidelity
@@ -66,6 +67,18 @@
       }
     };
   }, {
+    get internalSampleRate() {
+      return this._internalSampleRate;
+    },
+    set internalSampleRate(value) {
+      this._internalSampleRate = value;
+      if (this.worker) {
+        this.worker.postMessage({
+          action: 'set-samplerate',
+          value: this.internalSampleRate
+        });
+      }
+    },
     scheduleTick: function(notice) {
       var $__3 = this;
       var timestamp = this.ctx.currentTime,
@@ -313,31 +326,6 @@
             buffer[j] = Math.sin(j * f) / 2;
           }
           trackSlot.text = config.cycles + '';
-          buffer[0] = 0.125;
-          buffer[1] = 0.45;
-          buffer[2] = 0.125;
-          buffer[3] = 0.25;
-          buffer[4] = 0;
-          buffer[5] = 0.375;
-          buffer[6] = 0;
-          buffer[7] = -0.45;
-          buffer[8] = 0.125;
-          buffer[5400 - 1] = 0;
-          buffer[5400 - 2] = 0.25;
-          buffer[5400 - 3] = -0.25;
-          buffer[5400 - 4] = 0.25;
-          buffer[5400 - 5] = -0.25;
-          buffer[5400 - 6] = 0.25;
-          buffer[5400 - 7] = -0.25;
-          buffer[5400 - 8] = 0.25;
-          buffer[5400 - 9] = -0.25;
-          buffer[5400 - 10] = 0.25;
-          buffer[5400 - 11] = -0.25;
-          buffer[5400 - 12] = 0.25;
-          buffer[5400 - 13] = -0.25;
-          buffer[5400 - 14] = 0.25;
-          buffer[5400 - 15] = -0.25;
-          buffer[5400 - 16] = 0.25;
           step.masterSlot.mix(step.trackSlots.filter(function(slot) {
             return slot.note;
           }));

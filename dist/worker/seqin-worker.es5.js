@@ -12,7 +12,7 @@
       previousTickId = null,
       syncOffset = 0,
       startTime = +new Date(),
-      samplerate = 48000,
+      samplerate = 96000,
       fidelity = 5400,
       msPerStep = fidelity / samplerate * 1000;
   onmessage = function(e) {
@@ -59,7 +59,7 @@
       dropped: droppedTickIds.length,
       duplicate: duplicateTickIds.length
     });
-    setTimeout(tickCheck, notice + 70);
+    setTimeout(tickCheck, notice + 20);
   }
 }();
 //# sourceURL=<compile-source>
