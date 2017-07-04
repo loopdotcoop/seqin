@@ -45,7 +45,7 @@ window.addExampleNote = function () {
     if (hasAddedNoExampleNotes) {
         hasAddedNoExampleNotes = false;
 
-		for(let i = 0; i < 100; i++) {
+		for(let i = 0; i < tracks; i++) {
 			const noteId_1 = demo1.addNote({
 				voice:    SEQIN.Buzz
 			  , track:    i
