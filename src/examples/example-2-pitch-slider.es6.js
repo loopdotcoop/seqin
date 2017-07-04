@@ -12,10 +12,12 @@ const i = ~~document.cookie.split('~')[1] // 0 - 3
         + '/worker/seqin-worker.es' + (1 < i ? 6 : 5) + '.js'
       )
 
+const tracks = 100
+
 //// Create a Seqin instance.
 demo1 = window.DEMO = new SEQIN.Main({
     worker:   worker // runs a metronome, outside of the main thread
-  , tracks:   2      // number of audio channels (default 2)
+  , tracks:   tracks     // number of audio channels (default 2)
   , steps:    16     // defines the grid (default 16)
   , fidelity: 5400   // samples per step (default 5400)
 })
@@ -42,14 +44,17 @@ let hasAddedNoExampleNotes = true
 window.addExampleNote = function () {
     if (hasAddedNoExampleNotes) {
         hasAddedNoExampleNotes = false;
-        const noteId_1 = demo1.addNote({
-            voice:    SEQIN.Buzz
-          , track:    1
-          , on:       6
-          , duration: 2
-          , cycles:   30
-          , velocity: 0.8
-        })
+
+		for(let i = 0; i < 100; i++) {
+			const noteId_1 = demo1.addNote({
+				voice:    SEQIN.Buzz
+			  , track:    i
+			  , on:       Math.floor(Math.random() * 16)
+			  , duration: 2
+			  , cycles:   Math.floor(Math.random() * 100)
+			  , velocity: 0.8
+			})
+		}
     } else {
         const noteId_2 = demo1.addNote({
             voice:    SEQIN.Buzz
