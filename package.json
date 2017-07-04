@@ -1,0 +1,27 @@
+{
+  "name": "seqin",
+  "version": "1.0.0",
+  "description": "## Audio sequencer for Looptopia by Loop.Coop",
+  "main": "",
+  "directories": {
+    "example": "examples"
+  },
+  "dependencies": {
+    "traceur": "^0.0.111",
+    "uglify-js": "^3.0.23"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/loopdotcoop/seqin.git"
+  },
+  "author": "",
+  "license": "",
+  "bugs": {
+    "url": "https://github.com/loopdotcoop/seqin/issues"
+  },
+  "homepage": "https://github.com/loopdotcoop/seqin#readme"
+}
