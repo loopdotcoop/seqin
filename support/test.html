@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+
+<!-- Technical meta -->
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<!-- Search engine meta -->
+<title>Seqin</title>
+<meta name="description" content="Seqin unit tests">
+<link rel="author" href="../README.md">
+
+<!-- Mocha -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mocha/3.4.2/mocha.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/3.4.2/mocha.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chai/4.0.2/chai.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/asmCrypto/0.0.11/asmcrypto.js"></script>
+
+<!-- Seqin -->
+<script src="../Seqin.js"></script>
+
+<style type="text/css">
+body {
+    margin: 8px;
+    font-family: Arial, sans-serif;
+    background: #ccc;
+    color: #333
+}
+#mocha {
+    font: 20px/1.5 Arial, sans-serif;
+    margin: 0;
+}
+#mocha .test.pass::before {
+    color: #390;
+}
+</style>
+
+</head>
+<body>
+
+<h1><a href="../index.html">Seqin</a></h1>
+
+<div id="mocha"></div>
+
+<script>
+mocha.setup('bdd');
+const assert = chai.assert;
+</script>
+
+<script src="test-isomorphic.js"></script>
+<script src="test-browser.js"></script>
+
+<script>
+mocha.run();
+</script>
+
+</body>
+</html>
