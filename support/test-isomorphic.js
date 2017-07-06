@@ -11,7 +11,7 @@ const
 const META = {
     NAME:    { value:'Seqin'    }
   , ID:      { value:'si'       }
-  , VERSION: { value:'0.0.1'    }
+  , VERSION: { value:'0.0.2'    }
   , SPEC:    { value:'20170705' }
   , HELP:    { value:
 `The base class for all sequencer instruments. It’s not usually used directly -
@@ -24,8 +24,10 @@ describe('Seqin (isomorphic)', () => {
 	describe('META', () => {
 
         ['NAME','ID','VERSION','SPEC','HELP'].map( key => {
-        	it(`Seqin.${key} as expected`, () => {
-        		eq(Seqin[key], META[key].value)
+            const val = META[key].value
+            const shortval = 60<(''+val).length ? val.substr(0,59)+'…' : ''+val
+        	it(`Seqin.${key} is "${shortval}"`, () => {
+        		eq(Seqin[key], val)
         	})
         })
 

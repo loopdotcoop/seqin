@@ -11,14 +11,15 @@ Built by Rich Plastow and Monty Anderson for Loop.Coop.
 
 + __Homepage:__     [seqin.loop.coop](http://seqin.loop.coop)
 + __GitHub:__       [loopdotcoop/seqin](https://github.com/loopdotcoop/seqin)
++ __NPM:__          [seqin-si](https://www.npmjs.com/package/seqin-si)
 + __Twitter:__      [@loopdotcoop](https://twitter.com/loopdotcoop)
 + __Location:__     Brighton, UK
 
 
 App
 ---
-+ __Last update:__  2017/07/05
-+ __Version:__      0.0.1
++ __Last update:__  2017/07/06
++ __Version:__      0.0.2
 
 
 Tested
@@ -33,3 +34,4 @@ Tested
 Changelog
 ---------
 + 0.0.1       Initial commit on master branch; isomorphic mocha/chai working
++ 0.0.2       Fix incorrect "main" value in package.json
