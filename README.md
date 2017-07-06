@@ -19,7 +19,7 @@ Built by Rich Plastow and Monty Anderson for Loop.Coop.
 App
 ---
 + __Last update:__  2017/07/06
-+ __Version:__      0.0.2
++ __Version:__      0.0.3
 
 
 Tested
@@ -35,3 +35,4 @@ Changelog
 ---------
 + 0.0.1       Initial commit on master branch; isomorphic mocha/chai working
 + 0.0.2       Fix incorrect "main" value in package.json
++ 0.0.3       Part way through getBuffers()
