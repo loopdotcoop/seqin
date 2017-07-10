@@ -1,5 +1,5 @@
 //// These tests run in the browser and also Node.js.
-!function () {
+!function (ROOT) {
 
 const
     isBrowser = 'object' === typeof window
@@ -13,7 +13,7 @@ const
 const META = {
     NAME:    { value:'Seqin'    }
   , ID:      { value:'si'       }
-  , VERSION: { value:'0.0.3'    }
+  , VERSION: { value:'0.0.4'    }
   , SPEC:    { value:'20170705' }
   , HELP:    { value:
 `The base class for all sequencer instruments. It’s not usually used directly -
@@ -50,6 +50,7 @@ describe('Seqin (isomorphic)', () => {
               , sharedCache:      {}
               , samplesPerBuffer: 123
               , sampleRate:       123
+              , channelCount:     1
             }) } )
                .to.throw('config.audioContext is type boolean not object')
             expect( () => { new Seqin({
@@ -57,12 +58,14 @@ describe('Seqin (isomorphic)', () => {
               , sharedCache:      'abc'
               , samplesPerBuffer: 123
               , sampleRate:       123
+              , channelCount:     1
             }) } )
                .to.throw('config.sharedCache is type string not object')
             expect( () => { new Seqin({
                 audioContext:     {}
               , sharedCache:      {}
               , sampleRate:       123
+              , channelCount:     1
             }) } )
                .to.throw('config.samplesPerBuffer is type undefined not number')
             expect( () => { new Seqin({
@@ -70,8 +73,17 @@ describe('Seqin (isomorphic)', () => {
               , sharedCache:      {}
               , samplesPerBuffer: 123
               , sampleRate:       null
+              , channelCount:     1
             }) } )
                .to.throw('config.sampleRate is type object not number')
+            expect( () => { new Seqin({
+                audioContext:     {}
+              , sharedCache:      {}
+              , samplesPerBuffer: 123
+              , sampleRate:       123
+              , channelCount:     null
+            }) } )
+               .to.throw('config.channelCount is type object not number')
     	})
 
         {
@@ -82,6 +94,7 @@ describe('Seqin (isomorphic)', () => {
               , sharedCache:      cache
               , samplesPerBuffer: 123
               , sampleRate:       456
+              , channelCount:     2
             })
 
         	it(`should create instance properties`, () => {
@@ -89,6 +102,7 @@ describe('Seqin (isomorphic)', () => {
         		eq(seqin.sharedCache,      cache, 'seqin.sharedCache fail')
         		eq(seqin.samplesPerBuffer, 123,   'seqin.samplesPerBuffer fail')
         		eq(seqin.sampleRate,       456,   'seqin.sampleRate fail')
+        		eq(seqin.channelCount,     2,     'seqin.channelCount fail')
         	})
 
         	it(`instance properties should be immutable`, () => {
@@ -96,10 +110,12 @@ describe('Seqin (isomorphic)', () => {
                 seqin.sharedCache = {b:2}
                 seqin.samplesPerBuffer = 77
                 seqin.sampleRate = 88
+                seqin.channelCount = 1
         		eq(seqin.audioContext,     ctx,   'seqin.audioContext fail')
         		eq(seqin.sharedCache,      cache, 'seqin.sharedCache fail')
         		eq(seqin.samplesPerBuffer, 123,   'seqin.samplesPerBuffer fail')
         		eq(seqin.sampleRate,       456,   'seqin.sampleRate fail')
+        		eq(seqin.channelCount,     2,     'seqin.sampleRate fail')
         	})
         }
     })
@@ -112,7 +128,8 @@ describe('Seqin (isomorphic)', () => {
             audioContext:     ctx
           , sharedCache:      cache
           , samplesPerBuffer: 123
-          , sampleRate:       456
+          , sampleRate:       45678
+          , channelCount:     1
         })
 
     	it(`should be an object`, () => {
@@ -167,30 +184,59 @@ describe('Seqin (isomorphic)', () => {
 
     	it(`config.events should only contain valid 'event' objects`, () => {
             expect( () => { seqin.getBuffers({
-                bufferCount:     8
-              , cyclesPerBuffer: 123
-              , isLooping:       true
-              , events:          [ {}, {}, 'whoops!', {} ]
+                bufferCount: 8, cyclesPerBuffer: 123, isLooping: true
+              , events: [ {at:123,down:1}, {at:456,up:1}, 'whoops!', {at:789,down:1} ]
             }) } )
                .to.throw('config.events[2] is not an object')
+            expect( () => { seqin.getBuffers({
+                bufferCount: 8, cyclesPerBuffer: 123, isLooping: true
+              , events: [ {at:123,down:1}, {} ]
+            }) } )
+               .to.throw('config.events[1].at is not a number')
+            expect( () => { seqin.getBuffers({
+                bufferCount: 8, cyclesPerBuffer: 123, isLooping: true
+              , events: [ {at:123,down:1}, {at:-123.456} ]
+            }) } )
+               .to.throw('config.events[1] does not specify an action')
+            expect( () => { seqin.getBuffers({
+                bufferCount: 8, cyclesPerBuffer: 123, isLooping: true
+              , events: [ {at:123,down:1,up:0} ]
+            }) } )
+               .to.throw('config.events[0] has more than one action')
+            expect( () => { seqin.getBuffers({
+                bufferCount: 8, cyclesPerBuffer: 123, isLooping: true
+              , events: [ {at:123,up:true} ]
+            }) } )
+               .to.throw('config.events[0].up is invalid')
+            expect( () => { seqin.getBuffers({
+                bufferCount: 8, cyclesPerBuffer: 123, isLooping: true
+              , events: [ {at:123,up:1.0001} ]
+            }) } )
+               .to.throw('config.events[0].up is invalid')
+            expect( () => { seqin.getBuffers({
+                bufferCount: 8, cyclesPerBuffer: 123, isLooping: true
+              , events: [ {at:123,up:-0.0001} ]
+            }) } )
+               .to.throw('config.events[0].up is invalid')
+            expect( () => { seqin.getBuffers({
+                bufferCount: 8, cyclesPerBuffer: 123, isLooping: true
+              , events: [ {at:123,down:'1'} ]
+            }) } )
+               .to.throw('config.events[0].down is invalid')
+            expect( () => { seqin.getBuffers({
+                bufferCount: 8, cyclesPerBuffer: 123, isLooping: true
+              , events: [ {at:123,down:1.0001} ]
+            }) } )
+               .to.throw('config.events[0].down is invalid')
+            expect( () => { seqin.getBuffers({
+                bufferCount: 8, cyclesPerBuffer: 123, isLooping: true
+              , events: [ {at:123,down:-0.0001} ]
+            }) } )
+               .to.throw('config.events[0].down is invalid')
 
            //@TODO NEXT valid event objects
 
     	})
-
-
-
-        const buffers = seqin.getBuffers({
-            bufferCount:     8
-          , cyclesPerBuffer: 60
-          , isLooping:       true
-          , events:          []
-        })
-
-    	it(`should return an array`, () => {
-    		// eq(typeof buffers, buffers)
-    	})
-
     })
 
     	// const main = new SEQIN.Main({
@@ -248,4 +294,4 @@ describe('Seqin (isomorphic)', () => {
 
 })
 
-}()
+}( 'object' === typeof window ? window : global )
