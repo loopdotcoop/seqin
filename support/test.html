@@ -45,11 +45,23 @@ body {
 <div id="mocha"></div>
 
 <script>
-mocha.setup('bdd');
+mocha.setup('bdd')
+window.TestClassName = 'Seqin'
+window.TestMeta = {
+//// This has been copy-pasted from the main script:
+    NAME:    { value:'Seqin'    }
+  , ID:      { value:'si'       }
+  , VERSION: { value:'0.0.5'    }
+  , SPEC:    { value:'20170705' }
+  , HELP:    { value:
+`The base class for all sequencer instruments. It’s not usually used directly -
+it just generates silent buffers.` }
+}
 </script>
 
-<script src="test-isomorphic.js"></script>
-<script src="test-browser.js"></script>
+<script src="test-common-isomorphic.js"></script>
+<script src="test-common-browser.js"></script>
+<script src="test-specific-browser.js"></script>
 
 <script>
 mocha.run();

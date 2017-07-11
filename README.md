@@ -18,8 +18,8 @@ Built by Rich Plastow and Monty Anderson for Loop.Coop.
 
 App
 ---
-+ __Last update:__  2017/07/10
-+ __Version:__      0.0.4
++ __Last update:__  2017/07/11
++ __Version:__      0.0.5
 
 
 Tested
@@ -37,3 +37,4 @@ Changelog
 + 0.0.2       Fix incorrect "main" value in package.json
 + 0.0.3       Part way through getBuffers()
 + 0.0.4       getBuffers() complete
++ 0.0.5       Stricter config validation; tests are ‘common’ or ‘specific’
