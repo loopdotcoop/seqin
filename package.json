@@ -1,29 +1,27 @@
 {
-  "name": "seqin-si",
-  "version": "0.0.6",
-  "description": "The base class for all sequencer instruments",
-  "main": "Seqin.js",
+  "name": "seqin",
+  "version": "1.0.1",
+  "description": "Audio sequencer for Looptopia by Loop.Coop",
+  "main": "",
   "directories": {
-    "example": "support"
+    "example": "examples"
   },
-  "dependencies": {},
-  "devDependencies": {
-    "chai": "^4.0.2",
-    "mocha": "^3.4.2"
+  "dependencies": {
+    "traceur": "^0.0.111",
+    "uglify-js": "^3.0.23"
   },
+  "devDependencies": {},
   "scripts": {
-    "test": "mocha support/test.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/loopdotcoop/seqin.git"
   },
-  "keywords": ["seqin", "sequencer", "instrument", "web audio",
-    "base class", "silence"],
-  "author": "Rich Plastow<rich@loop.coop>, Monty Anderson",
-  "license": "MIT",
+  "author": "",
+  "license": "",
   "bugs": {
     "url": "https://github.com/loopdotcoop/seqin/issues"
   },
-  "homepage": "http://seqin.loop.coop"
+  "homepage": "https://github.com/loopdotcoop/seqin#readme"
 }
