@@ -24,7 +24,7 @@ ROOT.SEQIN.directory = ROOT.SEQIN.directory || {
           , SPEC: '20170705'
           , HELP: 'The base class for all mathematical Seqins. It’s not usually used directly - it just generates silent buffers.'
         }
-      , m1: {
+      , m1ma: {
             CDN: 'https://rawgit.com/loopdotcoop/seqin-m1ma/master/Monty1MathSeqin.js'
           , META: {
                 NAME: 'Monty1MathSeqin'
@@ -34,7 +34,7 @@ ROOT.SEQIN.directory = ROOT.SEQIN.directory || {
               , HELP: 'Monty’s first (experimental) mathematical Seqin. @TODO description'
             }
         }
-      , m1: {
+      , r1ma: {
             CDN: 'https://rawgit.com/richplastow/seqin-r1ma/master/Rich1MathSeqin.js'
           , META: {
                 NAME: 'Rich1MathSeqin'
