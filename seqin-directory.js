@@ -16,7 +16,7 @@ ROOT.SEQIN.directory = ROOT.SEQIN.directory || {
 
     //// The ‘MathSeqin’ family.
   , ma: {
-        CDN: 'https://rawgit.com/loopdotcoop/seqin-m1ma/master/Monty1MathSeqin.js'
+        CDN: 'https://rawgit.com/loopdotcoop/seqin-ma/master/MathSeqin.js'
       , META: {
             NAME: 'MathSeqin'
           , ID: 'ma'
@@ -48,7 +48,7 @@ ROOT.SEQIN.directory = ROOT.SEQIN.directory || {
 
     //// The ‘SynthSeqin’ family.
   , sy: {
-        CDN: 'https://rawgit.com/loopdotcoop/seqin-m1ma/master/Monty1MathSeqin.js'
+        CDN: 'https://rawgit.com/loopdotcoop/seqin-sy/master/SynthSeqin.js'
       , META: {
             NAME: 'SynthSeqin'
           , ID: 'sy'
