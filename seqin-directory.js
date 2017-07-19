@@ -9,7 +9,7 @@ ROOT.SEQIN.directory = ROOT.SEQIN.directory || {
   , META: {
         NAME: 'Seqin'
       , ID: 'si'
-      , VERSION: '0.0.7'
+      , VERSION: '0.0.13'
       , SPEC: '20170705'
       , HELP: 'The base class for all sequencer instruments. It’s not usually used directly - it just generates silent buffers.'
     }
@@ -20,7 +20,7 @@ ROOT.SEQIN.directory = ROOT.SEQIN.directory || {
       , META: {
             NAME: 'MathSeqin'
           , ID: 'ma'
-          , VERSION: '0.0.3'
+          , VERSION: '0.0.6'
           , SPEC: '20170705'
           , HELP: 'The base class for all mathematical Seqins. It’s not usually used directly - it just generates silent buffers.'
         }
@@ -39,7 +39,7 @@ ROOT.SEQIN.directory = ROOT.SEQIN.directory || {
           , META: {
                 NAME: 'Rich1MathSeqin'
               , ID: 'r1ma'
-              , VERSION: '0.0.3'
+              , VERSION: '0.0.7'
               , SPEC: '20170705'
               , HELP: 'Rich’s first (experimental) mathematical Seqin. @TODO description'
             }
@@ -52,7 +52,7 @@ ROOT.SEQIN.directory = ROOT.SEQIN.directory || {
       , META: {
             NAME: 'SynthSeqin'
           , ID: 'sy'
-          , VERSION: '0.0.5'
+          , VERSION: '0.0.7'
           , SPEC: '20170705'
           , HELP: 'The base class for all Seqin synths. It’s not usually used directly - it’s a very rudimentary synthesiser.'
         }
