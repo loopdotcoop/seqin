@@ -1,7 +1,7 @@
 {
   "name": "seqin",
-  "version": "1.0.7",
-  "description": "Audio sequencer for Looptopia by Loop.Coop",
+  "version": "1.0.8",
+  "description": "Sequencer instruments",
   "main": "",
   "directories": {
     "example": "examples"

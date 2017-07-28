@@ -1,6 +1,6 @@
 # Seqin
 
-## Audio sequencer for Looptopia by Loop.Coop
+## Sequencer instruments
 
 [GitHub](https://github.com/loopdotcoop/seqin) /
 [Demo](http://seqin.loop.coop/)

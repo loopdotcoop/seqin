@@ -5,42 +5,42 @@ ROOT.SEQIN = ROOT.SEQIN || {}
 ROOT.SEQIN.directory = ROOT.SEQIN.directory || {
 
     //// The base ‘Seqin’ class.
-    CDN: 'https://rawgit.com/loopdotcoop/seqin-si/master/Seqin.js'
+    CDN: 'https://rawgit.com/loopdotcoop/seqin-base/master/seqin-base.js'
   , META: {
         NAME: 'Seqin'
-      , ID: 'si'
-      , VERSION: '0.0.13'
-      , SPEC: '20170705'
+      , ID: 'base'
+      , VERSION: '1.0.2'
+      , SPEC: '20170728'
       , HELP: 'The base class for all sequencer instruments. It’s not usually used directly - it just generates silent buffers.'
     }
 
     //// The ‘MathSeqin’ family.
   , ma: {
-        CDN: 'https://rawgit.com/loopdotcoop/seqin-ma/master/MathSeqin.js'
+        CDN: 'https://rawgit.com/loopdotcoop/seqin-ma/master/seqin-ma.js'
       , META: {
             NAME: 'MathSeqin'
           , ID: 'ma'
-          , VERSION: '0.0.6'
-          , SPEC: '20170705'
-          , HELP: 'The base class for all mathematical Seqins. It’s not usually used directly - it just generates silent buffers.'
+          , VERSION: '1.0.0'
+          , SPEC: '20170728'
+          , HELP: 'The base class for all mathematical Seqins. It generates sine waves with ADSR envelopes.'
         }
       , m1ma: {
-            CDN: 'https://rawgit.com/loopdotcoop/seqin-m1ma/master/Monty1MathSeqin.js'
+            CDN: 'https://rawgit.com/loopdotcoop/seqin-m1ma/master/seqin-m1ma.js'
           , META: {
                 NAME: 'Monty1MathSeqin'
               , ID: 'm1ma'
-              , VERSION: '0.0.4'
-              , SPEC: '20170705'
+              , VERSION: '1.0.0'
+              , SPEC: '20170728'
               , HELP: 'Monty’s first (experimental) mathematical Seqin. @TODO description'
             }
         }
       , r1ma: {
-            CDN: 'https://rawgit.com/richplastow/seqin-r1ma/master/Rich1MathSeqin.js'
+            CDN: 'https://rawgit.com/richplastow/seqin-r1ma/master/seqin-r1ma.js'
           , META: {
                 NAME: 'Rich1MathSeqin'
               , ID: 'r1ma'
-              , VERSION: '0.0.7'
-              , SPEC: '20170705'
+              , VERSION: '1.0.0'
+              , SPEC: '20170728'
               , HELP: 'Rich’s first (experimental) mathematical Seqin. @TODO description'
             }
         }
@@ -48,13 +48,13 @@ ROOT.SEQIN.directory = ROOT.SEQIN.directory || {
 
     //// The ‘SynthSeqin’ family.
   , sy: {
-        CDN: 'https://rawgit.com/loopdotcoop/seqin-sy/master/SynthSeqin.js'
+        CDN: 'https://rawgit.com/loopdotcoop/seqin-sy/master/seqin-sy.js'
       , META: {
             NAME: 'SynthSeqin'
           , ID: 'sy'
-          , VERSION: '0.0.7'
-          , SPEC: '20170705'
-          , HELP: 'The base class for all Seqin synths. It’s not usually used directly - it’s a very rudimentary synthesiser.'
+          , VERSION: '1.0.0'
+          , SPEC: '20170728'
+          , HELP: 'The base class for all Seqin synths.'
         }
     }
 
